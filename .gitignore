@@ -1,0 +1,57 @@
+# Laravel
+/vendor
+/node_modules
+/public/storage
+/storage/*.key
+.env
+.env.*
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+
+# Laravel IDE Helper
+/_ide_helper.php
+/_ide_helper_models.php
+
+# Laravel Telescope
+/storage/telescope
+
+# Laravel Nova
+nova-components/
+
+# React / Node
+/build
+/dist
+*.log
+*.lock
+.pnpm-debug.log
+.vite
+vite.config.ts
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VSCode
+.vscode
+
+# PhpStorm
+.idea
+
+# Composer
+composer.lock
+
+# NPM/Yarn/Pnpm lock files (garder uniquement celui que vous utilisez)
+/package-lock.json
+/yarn.lock
+/pnpm-lock.yaml
+
+# Tests
+coverage
+phpunit.xml
+
+# Misc
+*.sublime-project
+*.sublime-workspace
