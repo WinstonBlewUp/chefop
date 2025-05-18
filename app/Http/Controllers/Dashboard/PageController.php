@@ -37,11 +37,17 @@ class PageController extends Controller
             'published' => 'boolean',
         ]);
 
+
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
         $validated['template'] = $validated['template'] ?: 'default';
-        $validated['published'] = $request->boolean('published');
+        $validated['published'] = filter_var($validated['published'], FILTER_VALIDATE_BOOLEAN);
 
-        Page::create($validated);
+        try {
+            Page::create($validated);
+        } catch (\Throwable $e) {
+            Log::error('Erreur lors de la création de la page : ' . $e->getMessage());
+            abort(500, 'Erreur création : ' . $e->getMessage());
+        }
 
         return redirect()->route('dashboard.pages.index');
     }
@@ -58,7 +64,7 @@ class PageController extends Controller
 
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
         $validated['template'] = $validated['template'] ?: 'default';
-        $validated['published'] = $request->boolean('published');
+        $validated['published'] = filter_var($validated['published'], FILTER_VALIDATE_BOOLEAN);
 
         $page->update($validated);
 
@@ -70,5 +76,14 @@ class PageController extends Controller
         $page->delete();
 
         return redirect()->route('dashboard.pages.index');
+    }
+
+    public function show(string $slug)
+    {
+        $page = Page::where('slug', $slug)
+                    ->where('published', true)
+                    ->firstOrFail();
+
+        return view('pages.show', compact('page'));
     }
 }

@@ -24,4 +24,6 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('dashboard.')
     Route::resource('pages', PageController::class);
 });
 
+Route::get('/pages/{slug}', [PageController::class, 'show'])->name('pages.show');
+
 require __DIR__.'/auth.php';
