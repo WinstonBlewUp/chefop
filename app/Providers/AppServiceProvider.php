@@ -25,6 +25,6 @@ class AppServiceProvider extends ServiceProvider
         View::share('menuLinks', $menuLinks);View::composer('*', function ($view) {
             $menuLinks = MenuLink::with('page')->get();
             $view->with('menuLinks', $menuLinks);
-        });
+        });    
     }
 }
