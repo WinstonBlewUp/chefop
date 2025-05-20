@@ -72,7 +72,7 @@ export default function PagesIndex() {
       });
     } else {
       console.log('Payload envoyé :', payload);
-      router.post('/dashboard/pages', payload, {
+      router.post('/dashboard/pages/', payload, {
         headers: {
           'Content-Type': 'application/json',
         },
