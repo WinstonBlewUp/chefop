@@ -57,6 +57,32 @@
                     </div>
                 </form>
 
+                <hr class="my-10">
+
+                <h3 class="text-lg font-semibold mb-4">Projets existants</h3>
+
+                <ul class="space-y-2">
+                    @forelse ($projects as $proj)
+                        <li class="flex justify-between items-center border p-3 rounded">
+                            <div>
+                                <div class="font-bold">{{ $proj->title }}</div>
+                                <div class="text-sm text-gray-500">{{ $proj->slug }}</div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <a href="{{ route('dashboard.projects.edit', $proj) }}" class="text-indigo-600 hover:underline text-sm">Modifier</a>
+                                <form action="{{ route('dashboard.projects.destroy', $proj) }}" method="POST" onsubmit="return confirm('Supprimer ce projet ?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="text-red-600 hover:underline text-sm">Supprimer</button>
+                                </form>
+                            </div>
+                        </li>
+                    @empty
+                        <li class="text-gray-500 text-sm">Aucun projet pour le moment.</li>
+                    @endforelse
+                </ul>
+
+
             </div>
         </div>
     </div>
