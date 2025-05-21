@@ -13,5 +13,7 @@
     <div>
         {!! nl2br(e($page->content)) !!}
     </div>
+
+    
 </body>
 </html>
