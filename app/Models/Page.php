@@ -10,7 +10,12 @@ class Page extends Model
         'title',
         'slug',
         'content',
-        'template',
+        'project_id',
         'published',
     ];
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
+    }
 }

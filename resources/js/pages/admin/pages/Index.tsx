@@ -6,32 +6,37 @@ type Page = {
   title: string;
   slug: string;
   content: string;
-  template: string;
+  project: string;
   published: boolean;
 };
 
 type Props = {
   pages: Page[];
-  templates: Record<string, string>;
+  projects: Project[];
+};
+
+type Project = {
+  id: number;
+  title: string;
 };
 
 type FormData = {
   title: string;
   slug: string;
   content: string;
-  template: string;
+  project: string;
   published: boolean;
 };
 
 export default function PagesIndex() {
-  const { pages, templates } = usePage<Props>().props;
+  const { pages, projects } = usePage<Props>().props;
   const [editingPage, setEditingPage] = useState<Page | null>(null);
 
   const { data, setData, post, put, reset, processing, errors } = useForm<FormData>({
     title: '',
     slug: '',
     content: '',
-    template: 'default',
+    project: 'default',
     published: false,
   });
 
@@ -87,7 +92,7 @@ export default function PagesIndex() {
     setData('title', page.title);
     setData('slug', page.slug);
     setData('content', page.content);
-    setData('template', page.template);
+    setData('project', page.project);
     setData('published', !!page.published);
   };
 
@@ -110,7 +115,7 @@ export default function PagesIndex() {
   const resetForm = () => {
     setEditingPage(null);
     reset();
-    setData('template', 'default');
+    setData('project', 'default');
     setData('published', false);
   };
 
@@ -142,34 +147,38 @@ export default function PagesIndex() {
         </div>
 
         <div>
-          <label className="block font-medium">Template</label>
+          <label className="block font-medium">Projet</label>
           <select
-            className="w-full border px-3 py-2 rounded"
-            value={data.template}
-            onChange={(e) => {
-              const selected = e.target.value;
-              setData('template', selected);
+  className="w-full border px-3 py-2 rounded"
+  value={data.project}
+  onChange={(e) => {
+    const selected = e.target.value;
+    setData('project', selected);
 
-              if (!editingPage) {
-                switch (selected) {
-                  case 'legal':
-                    setData('content', 'Mentions légales à compléter...');
-                    break;
-                  case 'contact':
-                    setData('content', 'Page contact avec formulaire...');
-                    break;
-                  default:
-                    setData('content', '');
-                }
-              }
-            }}
-          >
-            {Object.entries(templates).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
+    if (!editingPage) {
+      switch (selected) {
+        case 'legal':
+          setData('content', 'Mentions légales à compléter...');
+          break;
+        case 'contact':
+          setData('content', 'Page contact avec formulaire...');
+          break;
+        default:
+          setData('content', '');
+      }
+    }
+  }}
+>
+  <option value="default" disabled>Sélectionner un projet</option>
+  {Array.isArray(projects) &&
+  projects.map((project) => (
+    <option key={project.id} value={project.id.toString()}>
+      {project.title}
+    </option>
+))}
+
+</select>
+     
         </div>
 
         <div>
@@ -219,7 +228,7 @@ export default function PagesIndex() {
             <tr className="bg-gray-100 text-left text-sm">
               <th className="px-4 py-2">Titre</th>
               <th className="px-4 py-2">Slug</th>
-              <th className="px-4 py-2">Template</th>
+              <th className="px-4 py-2">Projet</th>
               <th className="px-4 py-2">Publié</th>
               <th className="px-4 py-2">Actions</th>
             </tr>
@@ -229,7 +238,7 @@ export default function PagesIndex() {
               <tr key={page.id} className="border-t">
                 <td className="px-4 py-2">{page.title}</td>
                 <td className="px-4 py-2">{page.slug}</td>
-                <td className="px-4 py-2">{page.template}</td>
+                <td className="px-4 py-2">{page.project}</td>
                 <td className="px-4 py-2">{page.published ? 'Oui' : 'Non'}</td>
                 <td className="px-4 py-2 space-x-16 flex justify-center" style={{ justifyContent: 'space-around'}}>                  
                   <button

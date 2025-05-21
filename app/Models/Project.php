@@ -16,4 +16,8 @@ class Project extends Model
     {
         return $this->belongsToMany(Media::class);
     }
+
+    public function pages() {
+        return $this->hasMany(Page::class);
+    }
 }
