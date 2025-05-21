@@ -34,4 +34,8 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('dashboard.')
 
 Route::get('/pages/{slug}', [PageController::class, 'show'])->name('pages.show');
 
+Route::get('/contact', function () {
+    return view('pages.contact');
+});
+
 require __DIR__.'/auth.php';
