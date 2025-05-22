@@ -13,6 +13,12 @@ type Page = {
 type Props = {
   pages: Page[];
   projects: Project[];
+  categories: Category[];
+};
+
+type Category = {
+  id: number;
+  name: string;
 };
 
 type Project = {
@@ -25,12 +31,17 @@ type FormData = {
   slug: string;
   content: string;
   project: string;
+  category_id?: string;
   published: boolean;
 };
 
+
+
 export default function PagesIndex() {
-  const { pages, projects } = usePage<Props>().props;
+  const { pages, projects, categories = [] } = usePage<Props>().props;
   const [editingPage, setEditingPage] = useState<Page | null>(null);
+  const [isCollectionMode, setIsCollectionMode] = useState(false);
+
 
   const { data, setData, post, put, reset, processing, errors } = useForm<FormData>({
     title: '',
@@ -93,6 +104,7 @@ export default function PagesIndex() {
     setData('slug', page.slug);
     setData('content', page.content);
     setData('project', page.project);
+    setData('category_id', page.category|| '');
     setData('published', !!page.published);
   };
 
@@ -104,8 +116,7 @@ export default function PagesIndex() {
 
   const handleShow = (page: Page) => {
   if (page.published) {
-    // Redirection vers la page publique (ex: /pages/slug)
-    window.open(`/pages/${page.slug}`, '_blank'); // Ouvre dans un nouvel onglet
+    window.open(`/pages/${page.slug}`, '_blank');
   } else {
     alert("La page n'est pas publiée.");
   }
@@ -146,29 +157,99 @@ export default function PagesIndex() {
           />
         </div>
 
-        <div>
+        <div className="flex items-center my-8">
+          <label className="block font-medium mr-4">Associer à une collection</label>
+          <input
+            type="checkbox"
+            className='ml-4'
+            checked={isCollectionMode}
+            onChange={(e) => {
+              setIsCollectionMode(e.target.checked);
+              if (e.target.checked) {
+                setData('project', 'default');
+              } else {
+                setData('category_id', '');
+              }
+            }}
+          />
+        </div>
+
+        <div className="mt-4">
+          {isCollectionMode ? (
+            <div>
+              <label className="block font-medium">Collection</label>
+              <select
+                className="w-full border px-3 py-2 rounded"
+                value={data.category_id || ''}
+                onChange={(e) => setData('category_id', e.target.value)}
+              >
+                <option value="">Sélectionner une collection</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div>
+              <label className="block font-medium">Projet</label>
+              <select
+                className="w-full border px-3 py-2 rounded"
+                value={data.project}
+                onChange={(e) => {
+                  const selected = e.target.value;
+                  setData('project', selected);
+
+                  if (!editingPage) {
+                    switch (selected) {
+                      case 'legal':
+                        setData('content', 'Mentions légales à compléter...');
+                        break;
+                      case 'contact':
+                        setData('content', 'Page contact avec formulaire...');
+                        break;
+                      default:
+                        setData('content', '');
+                    }
+                  }
+                }}
+              >
+                <option value="default" disabled>Sélectionner un projet</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id.toString()}>
+                    {project.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+
+
+        {/* <div>
           <label className="block font-medium">Projet</label>
           <select
-  className="w-full border px-3 py-2 rounded"
-  value={data.project}
-  onChange={(e) => {
-    const selected = e.target.value;
-    setData('project', selected);
+            className="w-full border px-3 py-2 rounded"
+            value={data.project}
+            onChange={(e) => {
+              const selected = e.target.value;
+              setData('project', selected);
 
-    if (!editingPage) {
-      switch (selected) {
-        case 'legal':
-          setData('content', 'Mentions légales à compléter...');
-          break;
-        case 'contact':
-          setData('content', 'Page contact avec formulaire...');
-          break;
-        default:
-          setData('content', '');
-      }
-    }
-  }}
->
+              if (!editingPage) {
+                switch (selected) {
+                  case 'legal':
+                    setData('content', 'Mentions légales à compléter...');
+                    break;
+                  case 'contact':
+                    setData('content', 'Page contact avec formulaire...');
+                    break;
+                  default:
+                    setData('content', '');
+                }
+              }
+            }}
+          >
   <option value="default" disabled>Sélectionner un projet</option>
   {Array.isArray(projects) &&
   projects.map((project) => (
@@ -179,7 +260,7 @@ export default function PagesIndex() {
 
 </select>
      
-        </div>
+        </div> */}
 
         <div>
           <label className="block font-medium">Contenu</label>
