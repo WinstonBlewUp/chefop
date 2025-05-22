@@ -7,24 +7,24 @@ use App\Models\Page;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class PageController extends Controller
 {
-   public function index()
-{
-    $pages = Page::latest()->get();
-    $projects = Project::all()->map(fn($project) => [
-        'id' => $project->id,
-        'title' => $project->title,
-    ]);
+    public function index()
+    {
+        $pages = Page::latest()->get();
+        $projects = Project::all()->map(fn($project) => [
+            'id' => $project->id,
+            'title' => $project->title,
+        ]);
 
-    return Inertia::render('admin/pages/Index', [
-        'pages' => $pages,
-        'projects' => $projects,
-    ]);
-}
-
+        return Inertia::render('admin/pages/Index', [
+            'pages' => $pages,
+            'projects' => $projects,
+        ]);
+    }
 
     public function store(Request $request)
     {
@@ -32,12 +32,13 @@ class PageController extends Controller
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:pages,slug',
             'content' => 'nullable|string',
-            'project_id' => 'exists:projects,id',
+            'project' => 'nullable|exists:projects,id',
             'published' => 'boolean',
         ]);
 
-
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
+        $validated['project_id'] = $validated['project'] ?? null;
+        unset($validated['project']);
         $validated['published'] = filter_var($validated['published'], FILTER_VALIDATE_BOOLEAN);
 
         try {
@@ -56,11 +57,13 @@ class PageController extends Controller
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:pages,slug,' . $page->id,
             'content' => 'nullable|string',
-            'project_id' => 'exists:projects,id',
+            'project' => 'nullable|exists:projects,id',
             'published' => 'boolean',
         ]);
 
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
+        $validated['project_id'] = $validated['project'] ?? null;
+        unset($validated['project']);
         $validated['published'] = filter_var($validated['published'], FILTER_VALIDATE_BOOLEAN);
 
         $page->update($validated);
@@ -77,12 +80,11 @@ class PageController extends Controller
 
     public function show(string $slug)
     {
-        $page = Page::where('slug', $slug)
+        $page = Page::with('project.media')
+                    ->where('slug', $slug)
                     ->where('published', true)
                     ->firstOrFail();
 
         return view('pages.show', compact('page'));
     }
-
-
 }
