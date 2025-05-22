@@ -1,11 +1,7 @@
-<x-app-layout>
-@include('dashboard.partials._menu')
+@extends('layouts.app')
 
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
-    </x-slot>
+@section('content')
+    @include('dashboard.partials._menu')
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -16,20 +12,40 @@
             </div>
         </div>
     </div>
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                <a href="{{ route('dashboard.pages.index') }}" class="">
-                    📄 Gérer les pages
-                </a>    
+                    <a href="{{ route('dashboard.pages.index') }}">
+                        📄 Gérer les pages
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="mt-4">
-    
-</div>
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
+                    <a href="{{ route('dashboard.media.index') }}">
+                        📸 Gérer les médias
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-</x-app-layout>
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
+                    <a href="{{ route('dashboard.projects.create') }}">
+                        📽️ Gérer les projets
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection

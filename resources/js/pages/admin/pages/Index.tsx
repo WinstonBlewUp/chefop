@@ -6,32 +6,47 @@ type Page = {
   title: string;
   slug: string;
   content: string;
-  template: string;
+  project?: Project;
+  category?: Category;
   published: boolean;
 };
 
 type Props = {
   pages: Page[];
-  templates: Record<string, string>;
+  projects: Project[];
+  categories: Category[];
+};
+
+type Category = {
+  id: number;
+  name: string;
+};
+
+type Project = {
+  id: number;
+  title: string;
 };
 
 type FormData = {
   title: string;
   slug: string;
   content: string;
-  template: string;
+  project_id?: string;
+  category_id?: string;
   published: boolean;
 };
 
 export default function PagesIndex() {
-  const { pages, templates } = usePage<Props>().props;
+  const { pages, projects, categories = [] } = usePage<Props>().props;
   const [editingPage, setEditingPage] = useState<Page | null>(null);
+  const [isCollectionMode, setIsCollectionMode] = useState(false);
 
   const { data, setData, post, put, reset, processing, errors } = useForm<FormData>({
     title: '',
     slug: '',
     content: '',
-    template: 'default',
+    project_id: '',
+    category_id: '',
     published: false,
   });
 
@@ -49,11 +64,6 @@ export default function PagesIndex() {
   ) => {
     e.preventDefault();
 
-    if (!data.title.trim()) {
-      alert('Le titre est requis.');
-      return;
-    }
-
     const finalSlug = data.slug.trim() || slugify(data.title);
 
     const payload: FormData = {
@@ -62,23 +72,24 @@ export default function PagesIndex() {
       published: type === 'publish',
     };
 
+    // Assurer qu’on n’envoie qu’un seul des deux IDs
+    if (isCollectionMode) {
+      delete payload.project_id;
+    } else {
+      delete payload.category_id;
+    }
+
     if (editingPage) {
       router.put(`/dashboard/pages/${editingPage.id}`, payload, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
         preserveScroll: true,
         onSuccess: () => resetForm(),
       });
     } else {
-      console.log('Payload envoyé :', payload);
+      console.log(payload);
       router.post('/dashboard/pages/', payload, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
         preserveScroll: true,
         onSuccess: () => resetForm(),
-      })
+      });
     }
   };
 
@@ -87,8 +98,27 @@ export default function PagesIndex() {
     setData('title', page.title);
     setData('slug', page.slug);
     setData('content', page.content);
-    setData('template', page.template);
-    setData('published', !!page.published);
+    setData('published', page.published);
+
+    if (page.project) {
+      setIsCollectionMode(false);
+      setData('project_id', page.project.id.toString());
+      setData('category_id', '');
+    } else if (page.category) {
+      setIsCollectionMode(true);
+      setData('category_id', page.category.id.toString());
+      setData('project_id', '');
+    } else {
+      setIsCollectionMode(false);
+      setData('project_id', '');
+      setData('category_id', '');
+    }
+  };
+
+  const resetForm = () => {
+    setEditingPage(null);
+    reset();
+    setIsCollectionMode(false);
   };
 
   const handleDelete = (id: number) => {
@@ -98,20 +128,11 @@ export default function PagesIndex() {
   };
 
   const handleShow = (page: Page) => {
-  if (page.published) {
-    // Redirection vers la page publique (ex: /pages/slug)
-    window.open(`/pages/${page.slug}`, '_blank'); // Ouvre dans un nouvel onglet
-  } else {
-    alert("La page n'est pas publiée.");
-  }
-  };
-
-
-  const resetForm = () => {
-    setEditingPage(null);
-    reset();
-    setData('template', 'default');
-    setData('published', false);
+    if (page.published) {
+      window.open(`/pages/${page.slug}`, '_blank');
+    } else {
+      alert("La page n'est pas publiée.");
+    }
   };
 
   return (
@@ -128,7 +149,6 @@ export default function PagesIndex() {
             onChange={(e) => setData('title', e.target.value)}
             required
           />
-          {errors.title && <p className="text-red-500 text-sm">{errors.title}</p>}
         </div>
 
         <div>
@@ -141,36 +161,55 @@ export default function PagesIndex() {
           />
         </div>
 
-        <div>
-          <label className="block font-medium">Template</label>
-          <select
-            className="w-full border px-3 py-2 rounded"
-            value={data.template}
+        <div className="flex items-center">
+          <label className="block font-medium mr-4">Associer à une collection</label>
+          <input
+            type="checkbox"
+            checked={isCollectionMode}
             onChange={(e) => {
-              const selected = e.target.value;
-              setData('template', selected);
-
-              if (!editingPage) {
-                switch (selected) {
-                  case 'legal':
-                    setData('content', 'Mentions légales à compléter...');
-                    break;
-                  case 'contact':
-                    setData('content', 'Page contact avec formulaire...');
-                    break;
-                  default:
-                    setData('content', '');
-                }
+              setIsCollectionMode(e.target.checked);
+              if (e.target.checked) {
+                setData('project_id', '');
+              } else {
+                setData('category_id', '');
               }
             }}
-          >
-            {Object.entries(templates).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
+          />
         </div>
+
+        {isCollectionMode ? (
+          <div>
+            <label className="block font-medium">Collection</label>
+            <select
+              className="w-full border px-3 py-2 rounded"
+              value={data.category_id || ''}
+              onChange={(e) => setData('category_id', e.target.value)}
+            >
+              <option value="">Sélectionner une collection</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id.toString()}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div>
+            <label className="block font-medium">Projet</label>
+            <select
+              className="w-full border px-3 py-2 rounded"
+              value={data.project_id || ''}
+              onChange={(e) => setData('project_id', e.target.value)}
+            >
+              <option value="">Sélectionner un projet</option>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id.toString()}>
+                  {project.title}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div>
           <label className="block font-medium">Contenu</label>
@@ -191,16 +230,14 @@ export default function PagesIndex() {
           >
             Enregistrer
           </button>
-
           <button
             type="button"
             onClick={(e) => handleSubmit(e as unknown as React.FormEvent, 'publish')}
-            className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900"
+            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
             disabled={processing}
           >
             Publier
           </button>
-
           {editingPage && (
             <button
               type="button"
@@ -219,7 +256,7 @@ export default function PagesIndex() {
             <tr className="bg-gray-100 text-left text-sm">
               <th className="px-4 py-2">Titre</th>
               <th className="px-4 py-2">Slug</th>
-              <th className="px-4 py-2">Template</th>
+              <th className="px-4 py-2">Source</th>
               <th className="px-4 py-2">Publié</th>
               <th className="px-4 py-2">Actions</th>
             </tr>
@@ -229,9 +266,11 @@ export default function PagesIndex() {
               <tr key={page.id} className="border-t">
                 <td className="px-4 py-2">{page.title}</td>
                 <td className="px-4 py-2">{page.slug}</td>
-                <td className="px-4 py-2">{page.template}</td>
+                <td className="px-4 py-2">
+                  {page.project?.title ?? (page.category ? `Collection : ${page.category.name}` : '—')}
+                </td>
                 <td className="px-4 py-2">{page.published ? 'Oui' : 'Non'}</td>
-                <td className="px-4 py-2 space-x-16 flex justify-center" style={{ justifyContent: 'space-around'}}>                  
+                <td className="px-4 py-2 space-x-4 flex justify-center">
                   <button
                     onClick={() => handleEdit(page)}
                     className="text-blue-600 hover:underline text-sm"

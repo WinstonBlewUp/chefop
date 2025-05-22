@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Page;
+use App\Models\Project;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class PageController extends Controller
@@ -13,19 +16,21 @@ class PageController extends Controller
     public function index()
     {
         $pages = Page::latest()->get();
+        $projects = Project::all()->map(fn($project) => [
+            'id' => $project->id,
+            'title' => $project->title,
+        ]);
 
-        $templates = [
-            'default' => 'Page vide',
-            'legal' => 'Mentions légales',
-            'contact' => 'Page de contact',
-        ];
+        $categories = Category::with(['projects.media' => function ($query) {
+            $query->orderBy('created_at')->limit(1);
+        }])->get();
 
         return Inertia::render('admin/pages/Index', [
             'pages' => $pages,
-            'templates' => $templates,
+            'projects' => $projects,
+            'categories' => $categories,
         ]);
     }
-
 
     public function store(Request $request)
     {
@@ -33,13 +38,16 @@ class PageController extends Controller
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:pages,slug',
             'content' => 'nullable|string',
-            'template' => 'nullable|string',
+            'project' => 'nullable|exists:projects,id',
             'published' => 'boolean',
+            'category_id' => 'nullable|exists:categories,id',
         ]);
 
+        
 
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
-        $validated['template'] = $validated['template'] ?: 'default';
+        $validated['project_id'] = $validated['project'] ?? null;
+        unset($validated['project']);
         $validated['published'] = filter_var($validated['published'], FILTER_VALIDATE_BOOLEAN);
 
         try {
@@ -58,12 +66,13 @@ class PageController extends Controller
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:pages,slug,' . $page->id,
             'content' => 'nullable|string',
-            'template' => 'nullable|string',
+            'project' => 'nullable|exists:projects,id',
             'published' => 'boolean',
         ]);
 
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
-        $validated['template'] = $validated['template'] ?: 'default';
+        $validated['project_id'] = $validated['project'] ?? null;
+        unset($validated['project']);
         $validated['published'] = filter_var($validated['published'], FILTER_VALIDATE_BOOLEAN);
 
         $page->update($validated);
@@ -80,7 +89,8 @@ class PageController extends Controller
 
     public function show(string $slug)
     {
-        $page = Page::where('slug', $slug)
+        $page = Page::with('project.media')
+                    ->where('slug', $slug)
                     ->where('published', true)
                     ->firstOrFail();
 
