@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Media;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -13,14 +14,17 @@ class ProjectController extends Controller
     public function index()
     {
         $projects = Project::latest()->get();
-        return view('dashboard.projects.index', compact('projects'));
+        $media = Media::latest()->get();
+        $categories = Category::all(); 
+        return view('dashboard.projects.index', compact('media', 'categories', 'projects'));;
     }
 
     public function create()
     {
         $media = Media::latest()->get();
+        $categories = Category::all();
         $projects = Project::latest()->get();
-        return view('dashboard.projects.create', compact('media', 'projects'));
+        return view('dashboard.projects.create', compact('media', 'categories', 'projects'));
     }
 
     public function store(Request $request)
@@ -29,9 +33,12 @@ class ProjectController extends Controller
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|unique:projects,slug',
             'description' => 'nullable|string',
+            'category_id' => 'nullable|exists:categories,id',
             'media' => 'array',
             'media.*' => 'exists:media,id',
         ]);
+
+        /* dd($validated); */
 
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
 
@@ -39,6 +46,7 @@ class ProjectController extends Controller
             'title' => $validated['title'],
             'slug' => $validated['slug'],
             'description' => $validated['description'] ?? null,
+            'category_id' => $validated['category_id'] ?? null,
         ]);
 
         if (!empty($validated['media'])) {
@@ -51,8 +59,9 @@ class ProjectController extends Controller
     public function edit(Project $project)
     {
         $media = Media::latest()->get();
+        $categories = Category::all();
         $attachedMedia = $project->media()->pluck('media.id')->toArray();
-        return view('dashboard.projects.edit', compact('project', 'media', 'attachedMedia'));
+        return view('dashboard.projects.edit', compact('project', 'media', 'attachedMedia', 'categories'));
     }
 
     public function update(Request $request, Project $project)
@@ -61,6 +70,7 @@ class ProjectController extends Controller
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|unique:projects,slug,' . $project->id,
             'description' => 'nullable|string',
+            'category_id' => 'nullable|exists:categories,id',
             'media' => 'array',
             'media.*' => 'exists:media,id',
         ]);
@@ -71,6 +81,7 @@ class ProjectController extends Controller
             'title' => $validated['title'],
             'slug' => $validated['slug'],
             'description' => $validated['description'] ?? null,
+            'category_id' => $validated['category_id'] ?? null,
         ]);
 
         $project->media()->sync($validated['media'] ?? []);

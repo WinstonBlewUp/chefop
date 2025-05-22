@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\Page;
 use App\Models\Project;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
@@ -20,9 +21,14 @@ class PageController extends Controller
             'title' => $project->title,
         ]);
 
+        $categories = Category::with(['projects.media' => function ($query) {
+            $query->orderBy('created_at')->limit(1);
+        }])->get();
+
         return Inertia::render('admin/pages/Index', [
             'pages' => $pages,
             'projects' => $projects,
+            'categories' => $categories,
         ]);
     }
 
@@ -34,7 +40,10 @@ class PageController extends Controller
             'content' => 'nullable|string',
             'project' => 'nullable|exists:projects,id',
             'published' => 'boolean',
+            'category_id' => 'nullable|exists:categories,id',
         ]);
+
+        
 
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
         $validated['project_id'] = $validated['project'] ?? null;
