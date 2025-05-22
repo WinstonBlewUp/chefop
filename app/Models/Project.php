@@ -10,6 +10,7 @@ class Project extends Model
         'title',
         'slug',
         'description',
+        'category_id',
     ];
 
     public function media()
@@ -20,4 +21,10 @@ class Project extends Model
     public function pages() {
         return $this->hasMany(Page::class);
     }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
 }

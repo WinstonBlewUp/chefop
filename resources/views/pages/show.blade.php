@@ -12,6 +12,8 @@
 
     <div>
         {!! nl2br(e($page->content)) !!}
+        @include('components.grid', ['media' => $page->project?->media])
+
     </div>
 </body>
 </html>
