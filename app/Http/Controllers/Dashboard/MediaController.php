@@ -12,7 +12,8 @@ class MediaController extends Controller
 {
     public function index()
     {
-        return view('dashboard.media.index');
+        $media = Media::latest()->get();
+        return view('dashboard.media.index', compact('media'));
     }
 
     public function upload(Request $request)

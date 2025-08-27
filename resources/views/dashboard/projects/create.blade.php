@@ -98,4 +98,66 @@
         </div>
     </div>
 </div>
+
+{{-- Modale de publication de page --}}
+@if(session('show_publish_modal'))
+    <div id="publishModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md mx-4">
+            <h3 class="text-lg font-semibold mb-4">Page associée créée</h3>
+            <p class="text-gray-600 mb-6">
+                La page associée à votre projet a été créée mais n'est pas encore publiée. 
+                Voulez-vous la publier maintenant ?
+            </p>
+            
+            <div class="flex justify-end space-x-4">
+                <button onclick="closeModal()" 
+                        class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                    Non
+                </button>
+                <button onclick="publishPage({{ session('show_publish_modal') }})" 
+                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                    Oui, publier
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function closeModal() {
+            document.getElementById('publishModal').style.display = 'none';
+        }
+
+        function publishPage(projectId) {
+            fetch(`/dashboard/projects/${projectId}/publish-page`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Page publiée avec succès !');
+                } else {
+                    alert('Erreur : ' + data.message);
+                }
+                closeModal();
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Une erreur est survenue');
+                closeModal();
+            });
+        }
+
+        // Auto-focus sur la modale
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('publishModal');
+            if (modal) {
+                modal.focus();
+            }
+        });
+    </script>
+@endif
 @endsection

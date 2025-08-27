@@ -35,6 +35,7 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('dashboard.')
     Route::get('/media', [MediaController::class, 'index'])->name('media.index');
     Route::post('/media/upload', [MediaController::class, 'upload'])->name('media.upload');
     Route::resource('/projects', ProjectController::class)->middleware(['auth', 'verified']);
+    Route::post('/projects/{project}/publish-page', [ProjectController::class, 'publishPage'])->name('projects.publish-page');
 
 
 });

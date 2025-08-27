@@ -13,6 +13,27 @@
     </form>
 
     <div id="uploadStatus" class="mt-4 text-sm text-gray-600 hidden">Upload en cours...</div>
+
+    {{-- Galerie des médias existants --}}
+    @if($media->count() > 0)
+        <div class="mt-12">
+            <h2 class="text-xl font-semibold mb-6">Médias existants</h2>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                @foreach($media as $item)
+                    <div class="relative cursor-pointer group">
+                        <img src="{{ asset('storage/' . $item->file_path) }}"
+                             alt="media"
+                             class="w-full h-32 object-cover rounded-md border border-gray-300 transition">
+
+                        <div class="absolute top-1 right-1 bg-white text-xs px-2 py-1 rounded shadow opacity-0 group-hover:opacity-100 transition">
+                            {{ strtoupper(pathinfo($item->file_path, PATHINFO_EXTENSION)) }}
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
 </div>
 
 <script>
