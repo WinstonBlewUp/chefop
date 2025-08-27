@@ -26,7 +26,18 @@ Route::get('/dashboard', function () {
     // Catégories disponibles (pas déjà dans le menu)
     $availableCategories = Category::whereNotIn('id', $menu->pluck('category_id')->filter())->get();
 
-    return view('dashboard', compact('menu', 'availablePages', 'availableCategories'));
+    // Statistiques pour le dashboard
+    $stats = [
+        'total_projects' => \App\Models\Project::count(),
+        'total_pages' => Page::count(),
+        'published_pages' => Page::where('published', true)->count(),
+        'total_media' => \App\Models\Media::count(),
+        'recent_projects' => \App\Models\Project::latest()->take(3)->get(),
+        'recent_pages' => Page::latest()->take(3)->get(),
+        'recent_media' => \App\Models\Media::latest()->take(6)->get(),
+    ];
+
+    return view('dashboard', compact('menu', 'availablePages', 'availableCategories', 'stats'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
