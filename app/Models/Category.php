@@ -16,4 +16,9 @@ class Category extends Model
     {
         return $this->hasMany(Project::class);
     }
+
+    public function pages()
+    {
+        return $this->hasMany(Page::class);
+    }
 }

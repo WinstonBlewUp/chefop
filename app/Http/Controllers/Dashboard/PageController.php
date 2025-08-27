@@ -15,21 +15,11 @@ class PageController extends Controller
 {
     public function index()
     {
-        $pages = Page::latest()->get();
-        $projects = Project::all()->map(fn($project) => [
-            'id' => $project->id,
-            'title' => $project->title,
-        ]);
+        $pages = Page::with(['project', 'category'])->latest()->get();
+        $projects = Project::all();
+        $categories = Category::all();
 
-        $categories = Category::with(['projects.media' => function ($query) {
-            $query->orderBy('created_at')->limit(1);
-        }])->get();
-
-        return Inertia::render('admin/pages/Index', [
-            'pages' => $pages,
-            'projects' => $projects,
-            'categories' => $categories,
-        ]);
+        return view('dashboard.pages.index', compact('pages', 'projects', 'categories'));
     }
 
     public function store(Request $request)
@@ -57,7 +47,7 @@ class PageController extends Controller
             abort(500, 'Erreur création : ' . $e->getMessage());
         }
 
-        return redirect()->route('dashboard.pages.index');
+        return redirect()->route('dashboard.pages.index')->with('success', 'Page créée avec succès.');
     }
 
     public function update(Request $request, Page $page)
@@ -77,14 +67,14 @@ class PageController extends Controller
 
         $page->update($validated);
 
-        return redirect()->route('dashboard.pages.index');
+        return redirect()->route('dashboard.pages.index')->with('success', 'Page mise à jour avec succès.');
     }
 
     public function destroy(Page $page)
     {
         $page->delete();
 
-        return redirect()->route('dashboard.pages.index');
+        return redirect()->route('dashboard.pages.index')->with('success', 'Page supprimée avec succès.');
     }
 
     public function show(string $slug)

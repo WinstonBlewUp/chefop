@@ -8,10 +8,17 @@
                 </div> -->
 
                 @foreach ($menuLinks as $link)
-                    <a href="{{ route('pages.show', $link->page->slug) }}"
-                        class="text-sm text-gray-700 hover:text-indigo-600 transition">
-                        {{ $link->page->title }}
-                    </a>
+                    @if($link->page_id)
+                        <a href="{{ route('pages.show', $link->slug) }}"
+                            class="text-sm text-gray-700 hover:text-indigo-600 transition">
+                            {{ strtoupper($link->title) }}
+                        </a>
+                    @else
+                        <a href="{{ route('categories.show', $link->slug) }}"
+                            class="text-sm text-gray-700 hover:text-indigo-600 transition">
+                            {{ strtoupper($link->title) }}
+                        </a>
+                    @endif
                 @endforeach            
             </div>   
 
