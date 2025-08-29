@@ -20,12 +20,12 @@
                         $media = $project->media->first();
                     @endphp
                     @if ($media)
-                        <a href="{{ route('pages.show', $project->slug) }}" class="block relative h-60 max-w-[40%] min-w-[15%] group">
+                        <a href="{{ route('pages.show', $project->slug) }}" class="block relative h-60 max-w-[40%] min-w-[15%]">
                             @if (Str::startsWith($media->type, 'image/'))
                                 <img
                                     src="{{ asset('storage/' . $media->file_path) }}"
                                     alt="{{ $project->title }}"
-                                    class="h-full w-auto object-cover rounded-md shadow mx-auto transition-transform group-hover:scale-105"
+                                    class="h-full w-auto object-cover rounded-md shadow mx-auto"
                                 />
                             @elseif (Str::startsWith($media->type, 'video/'))
                                 <video
@@ -34,11 +34,6 @@
                                     muted autoplay loop
                                 ></video>
                             @endif
-                            
-                            {{-- Overlay avec titre du projet --}}
-                            <div class="absolute bottom-0 left-0 right-0 bg-black/75 text-white p-2 rounded-b-md opacity-0 group-hover:opacity-100 transition-opacity">
-                                <p class="text-sm font-medium text-center">{{ $project->title }}</p>
-                            </div>
                         </a>
                     @endif
                 @endforeach

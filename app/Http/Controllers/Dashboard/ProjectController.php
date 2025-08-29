@@ -43,6 +43,14 @@ class ProjectController extends Controller
 
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
 
+        // Vérifier si aucune catégorie n'a été sélectionnée
+        if (empty($validated['category_id'])) {
+            return redirect()->route('dashboard.projects.create')->with([
+                'show_category_modal' => true,
+                'form_data' => $validated
+            ]);
+        }
+
         $project = Project::create([
             'title' => $validated['title'],
             'slug' => $validated['slug'],
@@ -66,6 +74,37 @@ class ProjectController extends Controller
 
         return redirect()->route('dashboard.projects.create')->with([
             'success' => 'Projet et page associée créés avec succès.',
+            'show_publish_modal' => $project->id
+        ]);
+    }
+
+    public function storeWithoutCategory(Request $request)
+    {
+        $formData = $request->input('form_data');
+        
+        $project = Project::create([
+            'title' => $formData['title'],
+            'slug' => $formData['slug'],
+            'description' => $formData['description'] ?? null,
+            'category_id' => null,
+        ]);
+
+        if (!empty($formData['media'])) {
+            $project->media()->attach($formData['media']);
+        }
+
+        // Créer automatiquement une page associée au projet
+        Page::create([
+            'title' => $formData['title'],
+            'slug' => $formData['slug'],
+            'content' => $formData['description'] ?? '',
+            'template' => 'default',
+            'published' => false,
+            'project_id' => $project->id,
+        ]);
+
+        return redirect()->route('dashboard.projects.create')->with([
+            'success' => 'Projet créé sans catégorie.',
             'show_publish_modal' => $project->id
         ]);
     }

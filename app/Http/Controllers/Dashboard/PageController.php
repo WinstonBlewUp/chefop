@@ -79,11 +79,23 @@ class PageController extends Controller
 
     public function show(string $slug)
     {
-        $page = Page::with('project.media')
+        $page = Page::with('project.media', 'project.category')
                     ->where('slug', $slug)
                     ->where('published', true)
                     ->firstOrFail();
 
-        return view('pages.show', compact('page'));
+        // Récupérer les autres projets de la même catégorie pour la navigation
+        $categoryProjects = collect();
+        if ($page->project && $page->project->category) {
+            $categoryProjects = $page->project->category->projects()
+                ->with('media')
+                ->whereHas('pages', function($query) {
+                    $query->where('published', true);
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+
+        return view('pages.show', compact('page', 'categoryProjects'));
     }
 }

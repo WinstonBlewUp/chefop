@@ -102,8 +102,8 @@ if ($page->project) {
 ?>
 
 @if ($page->project && $page->project->media->isNotEmpty())
-    {{-- Grille via projet (masonry) --}}
-    <div class="space-y-4 px-6">
+    {{-- Grille via projet (masonry) - ajustée pour la largeur réduite --}}
+    <div class="space-y-3">
         @foreach ($mediaByRow as $row)
             <div class="flex justify-center gap-2">
                 @php
@@ -113,17 +113,17 @@ if ($page->project) {
                     @php
                         $flexGrow = $item['ratio'] / $totalRatio;
                     @endphp
-                    <div class="relative" style="flex: {{ $flexGrow }};">
+                    <div class="relative shadow" style="flex: {{ $flexGrow }};">
                         @if (Str::startsWith($item['media']->type, 'image/'))
                             <img
                                 src="{{ asset('storage/' . $item['media']->file_path) }}"
                                 alt="media"
-                                class="h-60 w-full object-cover -md shadow"
+                                class="h-48 w-full object-cover"
                             />
                         @elseif (Str::startsWith($item['media']->type, 'video/'))
                             <video
                                 src="{{ asset('storage/' . $item['media']->file_path) }}"
-                                class="h-60 w-full object-cover -md shadow"
+                                class="h-48 w-full object-cover"
                                 controls
                             ></video>
                         @endif
@@ -135,7 +135,7 @@ if ($page->project) {
 
 @elseif ($page->category && $page->category->projects->isNotEmpty())
     {{-- Grille via collection : première image de chaque projet, cliquable --}}
-    <div class="flex flex-wrap justify-center gap-4 px-6">
+    <div class="flex flex-wrap justify-center gap-4">
         @foreach ($page->category->projects as $project)
             @php
                 $media = $project->media->first();
@@ -146,12 +146,12 @@ if ($page->project) {
                         <img
                             src="{{ asset('storage/' . $media->file_path) }}"
                             alt="media"
-                            class="h-full w-auto object-cover -md shadow mx-auto"
+                            class="h-full w-auto object-cover shadow mx-auto"
                         />
                     @elseif (Str::startsWith($media->type, 'video/'))
                         <video
                             src="{{ asset('storage/' . $media->file_path) }}"
-                            class="h-full w-auto object-cover -md shadow mx-auto"
+                            class="h-full w-auto object-cover shadow mx-auto"
                             muted autoplay loop
                         ></video>
                     @endif

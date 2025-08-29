@@ -1,9 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-    {{-- Menu de navigation (gardé tel quel) --}}
-    @include('dashboard.partials._menu')
-
     {{-- Statistiques rapides --}}
     <div class="py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -79,7 +76,15 @@
                 </div>
             </div>
 
-            {{-- Actions principales --}}
+        </div>
+    </div>
+
+    {{-- Menu de navigation --}}
+    @include('dashboard.partials._menu')
+
+    {{-- Actions principales --}}
+    <div class="py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {{-- Gestion des Pages --}}
                 <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
@@ -191,6 +196,7 @@
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     </div>

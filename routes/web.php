@@ -54,6 +54,7 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('dashboard.')
     Route::post('/media/upload', [MediaController::class, 'upload'])->name('media.upload');
     Route::resource('/projects', ProjectController::class)->middleware(['auth', 'verified']);
     Route::post('/projects/{project}/publish-page', [ProjectController::class, 'publishPage'])->name('projects.publish-page');
+    Route::post('/projects/store-without-category', [ProjectController::class, 'storeWithoutCategory'])->name('projects.store-without-category');
 
 
 });

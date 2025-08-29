@@ -133,6 +133,15 @@
                             <div>
                                 <div class="font-medium text-gray-900">{{ $proj->title }}</div>
                                 <div class="text-sm text-gray-500">{{ $proj->slug }}</div>
+                                @if($proj->category)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 mt-1">
+                                        {{ $proj->category->name }}
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 mt-1">
+                                        Sans catégorie
+                                    </span>
+                                @endif
                             </div>
                         </div>
                         
@@ -171,6 +180,83 @@
         </div>
     </div>
 </div>
+
+{{-- Modale de vérification catégorie --}}
+@if(session('show_category_modal'))
+    <div id="categoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md mx-4">
+            <div class="flex items-center mb-4">
+                <div class="p-3 rounded-full bg-yellow-100 mr-4">
+                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900">Aucune catégorie sélectionnée</h3>
+            </div>
+            <p class="text-gray-600 mb-6">
+                Vous n'avez pas sélectionné de catégorie pour ce projet. 
+                Voulez-vous vraiment continuer sans catégorie ?
+            </p>
+            
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeCategoryModal()" 
+                        class="inline-flex items-center px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Non, retourner
+                </button>
+                <button onclick="createWithoutCategory()" 
+                        class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-medium">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Oui, continuer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').style.display = 'none';
+        }
+
+        function createWithoutCategory() {
+            const formData = @json(session('form_data'));
+            
+            fetch(`/dashboard/projects/store-without-category`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    form_data: formData
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Une erreur est survenue');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Une erreur est survenue');
+            });
+        }
+
+        // Auto-focus sur la modale
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('categoryModal');
+            if (modal) {
+                modal.focus();
+            }
+        });
+    </script>
+@endif
 
 {{-- Modale de publication de page --}}
 @if(session('show_publish_modal'))

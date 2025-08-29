@@ -134,6 +134,11 @@
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                         Projet: {{ $page->project->title }}
                                     </span>
+                                    @if($page->project->category)
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                            {{ $page->project->category->name }}
+                                        </span>
+                                    @endif
                                 @elseif($page->category)
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                                         Catégorie: {{ $page->category->name }}
