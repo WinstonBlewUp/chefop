@@ -30,7 +30,7 @@
                         </svg>
                     </div>
                     <p class="text-gray-700 font-medium mb-2">Glissez-déposez un fichier ici ou cliquez pour en sélectionner un</p>
-                    <p class="text-sm text-gray-500">(JPG, PNG, GIF, MP4, MOV...)</p>
+                    <p class="text-sm text-gray-500">(JPEG, PNG, GIF, WEBP, MP4, MOV, AVI... - Max 100 Mo)</p>
                 </form>
 
                 <div id="uploadStatus" class="mt-4 text-sm text-gray-600 hidden flex items-center justify-center">
@@ -147,10 +147,58 @@
         const file = fileInput.files[0];
         if (!file) return;
 
+        // Vérifications côté client
+        const maxSize = 100 * 1024 * 1024; // 100 Mo en bytes
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp', 'video/mp4', 'video/mov', 'video/avi', 'video/x-msvideo', 'video/quicktime'];
+        
+        // Vérifier la taille
+        if (file.size > maxSize) {
+            status.classList.remove('hidden', 'text-gray-600');
+            status.innerHTML = `
+                <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Fichier trop volumineux (${(file.size / 1024 / 1024).toFixed(1)} Mo). Maximum autorisé : 100 Mo.
+            `;
+            status.classList.add('text-red-600');
+            setTimeout(() => {
+                status.classList.add('hidden');
+                status.classList.remove('text-red-600');
+                status.classList.add('text-gray-600');
+            }, 5000);
+            return;
+        }
+
+        // Vérifier le type MIME
+        if (!allowedTypes.includes(file.type)) {
+            status.classList.remove('hidden', 'text-gray-600');
+            status.innerHTML = `
+                <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Format non supporté (${file.type}). Formats acceptés : JPEG, PNG, GIF, WEBP, MP4, MOV, AVI.
+            `;
+            status.classList.add('text-red-600');
+            setTimeout(() => {
+                status.classList.add('hidden');
+                status.classList.remove('text-red-600');
+                status.classList.add('text-gray-600');
+            }, 5000);
+            return;
+        }
+
         const formData = new FormData();
         formData.append('file', file);
 
         status.classList.remove('hidden');
+        status.classList.add('text-gray-600');
+        status.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-orange-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Upload en cours... (${(file.size / 1024 / 1024).toFixed(1)} Mo)
+        `;
 
         fetch(dropzone.action, {
             method: 'POST',
@@ -159,26 +207,72 @@
             },
             body: formData
         }).then(res => {
-            if (res.ok) {
+            // Debug: afficher le statut de la réponse
+            console.log('Response status:', res.status);
+            
+            if (!res.ok) {
+                return res.text().then(text => {
+                    console.log('Error response body:', text);
+                    throw new Error(`HTTP ${res.status}: ${text}`);
+                });
+            }
+            
+            return res.json();
+        })
+        .then(data => {
+            status.classList.remove('text-gray-600');
+            
+            if (data.success) {
                 status.innerHTML = `
                     <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    Upload terminé avec succès !
+                    ${data.message || 'Upload terminé avec succès !'}
                 `;
-                status.classList.remove('text-gray-600');
                 status.classList.add('text-green-600');
+                setTimeout(() => location.reload(), 1500);
             } else {
                 status.innerHTML = `
                     <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    Erreur lors de l'upload
+                    ${data.message || 'Erreur lors de l\'upload'}
                 `;
-                status.classList.remove('text-gray-600');
                 status.classList.add('text-red-600');
+                setTimeout(() => {
+                    status.classList.add('hidden');
+                    status.classList.remove('text-red-600');
+                    status.classList.add('text-gray-600');
+                }, 5000);
             }
-            setTimeout(() => location.reload(), 1500);
+        })
+        .catch(error => {
+            console.error('Upload error:', error);
+            status.classList.remove('text-gray-600');
+            
+            let errorMessage = 'Erreur de connexion lors de l\'upload';
+            
+            // Parse les erreurs HTTP détaillées
+            if (error.message.includes('HTTP 422')) {
+                errorMessage = 'Erreur de validation - Vérifiez le format et la taille du fichier';
+            } else if (error.message.includes('HTTP 413')) {
+                errorMessage = 'Fichier trop volumineux pour le serveur';
+            } else if (error.message.includes('HTTP 500')) {
+                errorMessage = 'Erreur serveur - Contactez l\'administrateur';
+            }
+            
+            status.innerHTML = `
+                <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                ${errorMessage}
+            `;
+            status.classList.add('text-red-600');
+            setTimeout(() => {
+                status.classList.add('hidden');
+                status.classList.remove('text-red-600');
+                status.classList.add('text-gray-600');
+            }, 7000);
         });
     }
 </script>
