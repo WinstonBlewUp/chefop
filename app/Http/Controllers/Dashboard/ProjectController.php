@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Media;
 use App\Models\Category;
+use App\Models\Page;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -31,7 +32,7 @@ class ProjectController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'slug' => 'nullable|string|unique:projects,slug',
+            'slug' => 'nullable|string|unique:projects,slug|unique:pages,slug',
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
             'media' => 'array',
@@ -41,6 +42,14 @@ class ProjectController extends Controller
         /* dd($validated); */
 
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
+
+        // Vérifier si aucune catégorie n'a été sélectionnée
+        if (empty($validated['category_id'])) {
+            return redirect()->route('dashboard.projects.create')->with([
+                'show_category_modal' => true,
+                'form_data' => $validated
+            ]);
+        }
 
         $project = Project::create([
             'title' => $validated['title'],
@@ -53,7 +62,51 @@ class ProjectController extends Controller
             $project->media()->attach($validated['media']);
         }
 
-        return redirect()->route('dashboard')->with('success', 'Projet créé avec succès.');
+        // Créer automatiquement une page associée au projet
+        Page::create([
+            'title' => $validated['title'],
+            'slug' => $validated['slug'],
+            'content' => $validated['description'] ?? '',
+            'template' => 'default',
+            'published' => false, // Par défaut non publié
+            'project_id' => $project->id,
+        ]);
+
+        return redirect()->route('dashboard.projects.create')->with([
+            'success' => 'Projet et page associée créés avec succès.',
+            'show_publish_modal' => $project->id
+        ]);
+    }
+
+    public function storeWithoutCategory(Request $request)
+    {
+        $formData = $request->input('form_data');
+        
+        $project = Project::create([
+            'title' => $formData['title'],
+            'slug' => $formData['slug'],
+            'description' => $formData['description'] ?? null,
+            'category_id' => null,
+        ]);
+
+        if (!empty($formData['media'])) {
+            $project->media()->attach($formData['media']);
+        }
+
+        // Créer automatiquement une page associée au projet
+        Page::create([
+            'title' => $formData['title'],
+            'slug' => $formData['slug'],
+            'content' => $formData['description'] ?? '',
+            'template' => 'default',
+            'published' => false,
+            'project_id' => $project->id,
+        ]);
+
+        return redirect()->route('dashboard.projects.create')->with([
+            'success' => 'Projet créé sans catégorie.',
+            'show_publish_modal' => $project->id
+        ]);
     }
 
     public function edit(Project $project)
@@ -68,7 +121,7 @@ class ProjectController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'slug' => 'nullable|string|unique:projects,slug,' . $project->id,
+            'slug' => 'nullable|string|unique:projects,slug,' . $project->id . '|unique:pages,slug,' . optional($project->pages()->first())->id,
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
             'media' => 'array',
@@ -86,12 +139,37 @@ class ProjectController extends Controller
 
         $project->media()->sync($validated['media'] ?? []);
 
-        return redirect()->route('dashboard')->with('success', 'Projet mis à jour.');
+        // Mettre à jour la page associée si elle existe
+        $associatedPage = $project->pages()->first();
+        if ($associatedPage) {
+            $associatedPage->update([
+                'title' => $validated['title'],
+                'slug' => $validated['slug'],
+                'content' => $validated['description'] ?? '',
+            ]);
+        }
+
+        return redirect()->route('dashboard')->with('success', 'Projet et page associée mis à jour.');
     }
 
     public function destroy(Project $project)
     {
+        // Supprimer les pages associées
+        $project->pages()->delete();
+        
         $project->delete();
-        return redirect()->route('dashboard')->with('success', 'Projet supprimé.');
+        return redirect()->route('dashboard')->with('success', 'Projet et pages associées supprimés.');
+    }
+
+    public function publishPage(Project $project)
+    {
+        $page = $project->pages()->first();
+        
+        if ($page) {
+            $page->update(['published' => true]);
+            return response()->json(['success' => true, 'message' => 'Page publiée avec succès.']);
+        }
+        
+        return response()->json(['success' => false, 'message' => 'Page non trouvée.']);
     }
 }

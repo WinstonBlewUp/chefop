@@ -21,9 +21,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $menuLinks = MenuLink::with('page')->get();
-        View::share('menuLinks', $menuLinks);View::composer('*', function ($view) {
+        View::composer('*', function ($view) {
             $menuLinks = MenuLink::with('page')->get();
+            
+            // Exclure les catégories spéciales du menu
+            $menuLinks = $menuLinks->filter(function ($link) {
+                if ($link->page_id) {
+                    return true; // Garder toutes les pages
+                }
+                // Exclure Selected Work et Stills des catégories du menu
+                return !in_array($link->slug, ['selected-work', 'stills']);
+            });
+            
             $view->with('menuLinks', $menuLinks);
         });    
     }

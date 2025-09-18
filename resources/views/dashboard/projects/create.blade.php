@@ -1,36 +1,48 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="py-12">
-    <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-            <div class="p-6 text-gray-900">
+<div class="py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {{-- Header avec titre et icône --}}
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+            <div class="p-6">
+                <div class="flex items-center mb-6">
+                    <div class="p-3 rounded-full bg-green-100 mr-4">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900">Créer un nouveau projet</h2>
+                        <p class="text-gray-600">Ajoutez un projet et associez des médias</p>
+                    </div>
+                </div>
 
-                <h2 class="text-xl font-semibold mb-6">Créer un nouveau projet</h2>
-
-                <form action="{{ route('dashboard.projects.store') }}" method="POST">
+                <form action="{{ route('dashboard.projects.store') }}" method="POST" class="space-y-6">
                     @csrf
 
-                    {{-- Infos du projet --}}
-                    <div class="mb-6">
-                        <label class="block font-medium text-sm text-gray-700 mb-1">Titre</label>
-                        <input type="text" name="title" class="w-full border-gray-300 rounded-md shadow-sm" required>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block font-medium text-sm text-gray-700 mb-2">Titre</label>
+                            <input type="text" name="title" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-200 focus:border-green-400" required>
+                        </div>
+
+                        <div>
+                            <label class="block font-medium text-sm text-gray-700 mb-2">Slug (optionnel)</label>
+                            <input type="text" name="slug" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-200 focus:border-green-400">
+                        </div>
                     </div>
 
-                    <div class="mb-6">
-                        <label class="block font-medium text-sm text-gray-700 mb-1">Slug (optionnel)</label>
-                        <input type="text" name="slug" class="w-full border-gray-300 rounded-md shadow-sm">
+                    <div>
+                        <label class="block font-medium text-sm text-gray-700 mb-2">Description</label>
+                        <textarea name="description" rows="4" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-200 focus:border-green-400"></textarea>
                     </div>
 
-                    <div class="mb-6">
-                        <label class="block font-medium text-sm text-gray-700 mb-1">Description</label>
-                        <textarea name="description" rows="4" class="w-full border-gray-300 rounded-md shadow-sm"></textarea>
-                    </div>
-
-                    <div class="mb-6">
-                        <label class="block font-medium text-sm text-gray-700 mb-1">Catégorie</label>
-                        <select name="category_id" class="w-full border-gray-300 rounded-md shadow-sm">
-                            <option value="">-- Aucune --</option>
+                    <div>
+                        <label class="block font-medium text-sm text-gray-700 mb-2">Catégorie</label>
+                        <select name="category_id" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-200 focus:border-green-400">
+                            <option value="">-- Sélectionner une catégorie --</option>
                             @foreach ($categories as $category)
                                 <option value="{{ $category->id }}">{{ $category->name }}</option>
                             @endforeach
@@ -38,64 +50,286 @@
                     </div>
 
 
-                    {{-- Galerie --}}
-                    <div class="mb-8">
+                    <div>
                         <label class="block font-medium text-sm text-gray-700 mb-4">Associer des médias</label>
+                        <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                            @if($media->count() > 0)
+                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                    @foreach ($media as $item)
+                                        <label class="relative cursor-pointer group">
+                                            <input type="checkbox" name="media[]" value="{{ $item->id }}" class="peer hidden">
 
-                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                            @foreach ($media as $item)
-                                <label class="relative cursor-pointer group">
-                                    <input type="checkbox" name="media[]" value="{{ $item->id }}" class="peer hidden">
+                                            @if(Str::startsWith($item->type, 'image/'))
+                                                <img src="{{ asset('storage/' . $item->file_path) }}"
+                                                     alt="media"
+                                                     class="w-full h-32 object-cover rounded-lg border-2 border-gray-300 peer-checked:border-green-500 peer-checked:ring-2 peer-checked:ring-green-200 transition-all hover:shadow-md">
+                                            @elseif(Str::startsWith($item->type, 'video/'))
+                                                <video class="w-full h-32 object-cover rounded-lg border-2 border-gray-300 peer-checked:border-green-500 peer-checked:ring-2 peer-checked:ring-green-200 transition-all hover:shadow-md" muted>
+                                                    <source src="{{ asset('storage/' . $item->file_path) }}" type="{{ $item->type }}">
+                                                </video>
+                                            @endif
 
-                                    <img src="{{ asset('storage/' . $item->file_path) }}"
-                                         alt="media"
-                                         class="w-full h-32 object-cover rounded-md border border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition">
+                                            <div class="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                                                {{ strtoupper(pathinfo($item->file_path, PATHINFO_EXTENSION)) }}
+                                            </div>
 
-                                    <div class="absolute top-1 right-1 bg-white text-xs px-2 py-1 rounded shadow opacity-0 group-hover:opacity-100 transition">
-                                        {{ strtoupper(pathinfo($item->file_path, PATHINFO_EXTENSION)) }}
-                                    </div>
-
-                                    <div class="absolute inset-0 rounded-md bg-indigo-500/20 opacity-0 peer-checked:opacity-100 transition pointer-events-none"></div>
-                                </label>
-                            @endforeach
+                                            <div class="absolute inset-0 rounded-lg bg-green-500/20 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></div>
+                                            
+                                            {{-- Checkmark sur sélection --}}
+                                            <div class="absolute top-2 left-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                                <div class="p-1 rounded-full bg-green-500">
+                                                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="text-center text-gray-500 py-8">
+                                    <svg class="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <p class="font-medium">Aucun média disponible</p>
+                                    <p class="text-sm">Ajoutez des médias dans la section Gestion des Médias</p>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
-                    <div class="flex justify-end">
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-md">
+                    <div class="flex justify-end pt-4">
+                        <button type="submit" class="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
                             Créer le projet
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
 
-                <hr class="my-10">
+        {{-- Liste des projets existants --}}
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center mb-6">
+                    <div class="p-2 rounded-full bg-green-100 mr-3">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900">Projets existants</h3>
+                </div>
 
-                <h3 class="text-lg font-semibold mb-4">Projets existants</h3>
-
-                <ul class="space-y-2">
-                    @forelse ($projects ?? [] as $proj)
-                        <li class="flex justify-between items-center border p-3 rounded">
+                @forelse ($projects ?? [] as $proj)
+                    <div class="flex items-center justify-between bg-gray-50 p-4 rounded-lg mb-3 hover:bg-gray-100 transition-colors">
+                        <div class="flex items-center space-x-4">
+                            <div class="p-2 rounded-full bg-green-100">
+                                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                </svg>
+                            </div>
                             <div>
-                                <div class="font-bold">{{ $proj->title }}</div>
+                                <div class="font-medium text-gray-900">{{ $proj->title }}</div>
                                 <div class="text-sm text-gray-500">{{ $proj->slug }}</div>
+                                @if($proj->category)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 mt-1">
+                                        {{ $proj->category->name }}
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 mt-1">
+                                        Sans catégorie
+                                    </span>
+                                @endif
                             </div>
-                            <div class="flex items-center gap-2">
-                                <a href="{{ route('dashboard.projects.edit', $proj) }}" class="text-indigo-600 hover:underline text-sm">Modifier</a>
-                                <form action="{{ route('dashboard.projects.destroy', $proj) }}" method="POST" onsubmit="return confirm('Supprimer ce projet ?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="text-red-600 hover:underline text-sm">Supprimer</button>
-                                </form>
-                            </div>
-                        </li>
-                    @empty
-                        <li class="text-gray-500 text-sm">Aucun projet pour le moment.</li>
-                    @endforelse
-                </ul>
-
-
+                        </div>
+                        
+                        <div class="flex items-center space-x-2">
+                            <a href="{{ route('dashboard.projects.edit', $proj) }}" 
+                               class="inline-flex items-center px-3 py-1.5 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                Modifier
+                            </a>
+                            <form action="{{ route('dashboard.projects.destroy', $proj) }}" method="POST" onsubmit="return confirm('Supprimer ce projet ?')" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button class="inline-flex items-center px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                    Supprimer
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-center text-gray-500 py-12">
+                        <div class="p-4 rounded-full bg-gray-100 mx-auto w-16 h-16 flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                            </svg>
+                        </div>
+                        <p class="font-medium">Aucun projet pour le moment.</p>
+                        <p class="text-sm">Créez votre premier projet avec le formulaire ci-dessus.</p>
+                    </div>
+                @endforelse
             </div>
         </div>
     </div>
 </div>
+
+{{-- Modale de vérification catégorie --}}
+@if(session('show_category_modal'))
+    <div id="categoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md mx-4">
+            <div class="flex items-center mb-4">
+                <div class="p-3 rounded-full bg-yellow-100 mr-4">
+                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900">Aucune catégorie sélectionnée</h3>
+            </div>
+            <p class="text-gray-600 mb-6">
+                Vous n'avez pas sélectionné de catégorie pour ce projet. 
+                Voulez-vous vraiment continuer sans catégorie ?
+            </p>
+            
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeCategoryModal()" 
+                        class="inline-flex items-center px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Non, retourner
+                </button>
+                <button onclick="createWithoutCategory()" 
+                        class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-medium">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Oui, continuer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').style.display = 'none';
+        }
+
+        function createWithoutCategory() {
+            const formData = @json(session('form_data'));
+            
+            fetch(`/dashboard/projects/store-without-category`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    form_data: formData
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Une erreur est survenue');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Une erreur est survenue');
+            });
+        }
+
+        // Auto-focus sur la modale
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('categoryModal');
+            if (modal) {
+                modal.focus();
+            }
+        });
+    </script>
+@endif
+
+{{-- Modale de publication de page --}}
+@if(session('show_publish_modal'))
+    <div id="publishModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md mx-4">
+            <div class="flex items-center mb-4">
+                <div class="p-3 rounded-full bg-green-100 mr-4">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900">Page associée créée</h3>
+            </div>
+            <p class="text-gray-600 mb-6">
+                La page associée à votre projet a été créée mais n'est pas encore publiée. 
+                Voulez-vous la publier maintenant ?
+            </p>
+            
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeModal()" 
+                        class="inline-flex items-center px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Non
+                </button>
+                <button onclick="publishPage({{ session('show_publish_modal') }})" 
+                        class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Oui, publier
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function closeModal() {
+            document.getElementById('publishModal').style.display = 'none';
+        }
+
+        function publishPage(projectId) {
+            fetch(`/dashboard/projects/${projectId}/publish-page`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Page publiée avec succès !');
+                } else {
+                    alert('Erreur : ' + data.message);
+                }
+                closeModal();
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Une erreur est survenue');
+                closeModal();
+            });
+        }
+
+        // Auto-focus sur la modale
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('publishModal');
+            if (modal) {
+                modal.focus();
+            }
+        });
+    </script>
+@endif
 @endsection
