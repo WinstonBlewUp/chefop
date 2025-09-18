@@ -32,7 +32,7 @@
                     <p class="text-gray-700 font-medium mb-2">Glissez-déposez vos fichiers ici ou cliquez pour en sélectionner</p>
                     <p class="text-sm text-gray-500 mb-2">(Sélection multiple supportée - Max 10 fichiers à la fois)</p>
                     <p class="text-xs text-gray-400">Images : JPEG, PNG, GIF, WEBP, BMP, TIFF, SVG</p>
-                    <p class="text-xs text-gray-400">Vidéos : MP4, MOV, AVI, MKV, WMV, FLV, WEBM, M4V, 3GP... - Max 100 Mo par fichier</p>
+                    <p class="text-xs text-gray-400">Vidéos : MP4, MOV, AVI, MKV, WMV, FLV, WEBM, M4V, 3GP... - Max 120 Mo par fichier</p>
                 </form>
 
                 {{-- Barre de progression pour les uploads multiples --}}
@@ -192,7 +192,7 @@
         'video/x-ms-wmv', 'video/x-flv', 'video/webm', 'video/x-m4v', 
         'video/3gpp', 'video/ogg', 'video/x-ms-asf'
     ];
-    const maxSize = 100 * 1024 * 1024; // 100 Mo
+    const maxSize = 120 * 1024 * 1024; // 120 Mo (pour correspondre à post_max_size)
 
     dropzone.addEventListener('click', (e) => {
         e.preventDefault();
@@ -241,10 +241,13 @@
 
         files.forEach(file => {
             if (file.size > maxSize) {
-                errors.push(`${file.name}: Fichier trop volumineux (${(file.size / 1024 / 1024).toFixed(1)} Mo). Max 100 Mo.`);
+                console.log('ERROR: Client-side validation failed for file size');
+                errors.push(`${file.name}: Fichier trop volumineux (${(file.size / 1024 / 1024).toFixed(1)} Mo). Max 120 Mo.`);
             } else if (!allowedTypes.includes(file.type)) {
+                console.log('ERROR: Client-side validation failed for file type');
                 errors.push(`${file.name}: Format non supporté (${file.type}).`);
             } else {
+                console.log('SUCCESS: Client-side validation passed');
                 validFiles.push(file);
             }
         });
@@ -320,8 +323,10 @@
                 } catch (e) {
                     // En cas d'erreur de parsing, vérifier si c'est une erreur de limite PHP
                     if (xhr.responseText.includes('POST Content-Length') && xhr.responseText.includes('exceeds the limit')) {
-                        showError('Fichier trop volumineux. Veuillez utiliser un fichier de moins de 100 Mo.');
+                        console.log('ERROR: PHP Content-Length limit exceeded detected in response');
+                        showError('Fichier trop volumineux. Veuillez utiliser un fichier de moins de 120 Mo.');
                     } else {
+                        console.log('ERROR: Other JSON parsing error');
                         showError('Erreur de communication avec le serveur. Veuillez réessayer.');
                     }
                 }

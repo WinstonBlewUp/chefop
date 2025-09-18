@@ -18,6 +18,13 @@ class MediaController extends Controller
 
     public function upload(Request $request)
     {
+        \Log::info('Upload request received', [
+            'has_file' => $request->hasFile('file'),
+            'has_files' => $request->hasFile('files'),
+            'file_size' => $request->hasFile('file') ? $request->file('file')->getSize() : null,
+            'file_type' => $request->hasFile('file') ? $request->file('file')->getMimeType() : null,
+        ]);
+
         try {
             // Support multi-fichiers
             if ($request->hasFile('files')) {
@@ -25,12 +32,12 @@ class MediaController extends Controller
             }
             
             $request->validate([
-                'file' => 'required|file|mimes:jpeg,png,jpg,gif,webp,bmp,tiff,svg,mp4,mov,avi,mkv,wmv,flv,webm,m4v,3gp,ogv,m2v,mts,m2ts,ts,vob,f4v,asf|max:102400', // max 100 Mo
+                'file' => 'required|file|mimes:jpeg,png,jpg,gif,webp,bmp,tiff,svg,mp4,mov,avi,mkv,wmv,flv,webm,m4v,3gp,ogv,m2v,mts,m2ts,ts,vob,f4v,asf|max:122880', // max 120 Mo
             ], [
                 'file.required' => 'Veuillez sélectionner un fichier.',
                 'file.file' => 'Le fichier sélectionné n\'est pas valide.',
                 'file.mimes' => 'Format de fichier non supporté. Formats acceptés : Images (JPEG, PNG, GIF, WEBP, BMP, TIFF, SVG) et Vidéos (MP4, MOV, AVI, MKV, WMV, FLV, WEBM, M4V, 3GP, OGV, etc.).',
-                'file.max' => 'Le fichier est trop volumineux. Taille maximale autorisée : 100 Mo.',
+                'file.max' => 'Le fichier est trop volumineux. Taille maximale autorisée : 120 Mo.',
             ]);
 
             $file = $request->file('file');
@@ -64,14 +71,14 @@ class MediaController extends Controller
     {
         $request->validate([
             'files' => 'required|array|max:10',
-            'files.*' => 'file|mimes:jpeg,png,jpg,gif,webp,bmp,tiff,svg,mp4,mov,avi,mkv,wmv,flv,webm,m4v,3gp,ogv,m2v,mts,m2ts,ts,vob,f4v,asf|max:102400',
+            'files.*' => 'file|mimes:jpeg,png,jpg,gif,webp,bmp,tiff,svg,mp4,mov,avi,mkv,wmv,flv,webm,m4v,3gp,ogv,m2v,mts,m2ts,ts,vob,f4v,asf|max:122880',
         ], [
             'files.required' => 'Veuillez sélectionner au moins un fichier.',
             'files.array' => 'Format de données invalide.',
             'files.max' => 'Vous ne pouvez pas uploader plus de 10 fichiers à la fois.',
             'files.*.file' => 'Un des fichiers sélectionnés n\'est pas valide.',
             'files.*.mimes' => 'Un ou plusieurs fichiers ont un format non supporté.',
-            'files.*.max' => 'Un ou plusieurs fichiers sont trop volumineux (max 100 Mo).',
+            'files.*.max' => 'Un ou plusieurs fichiers sont trop volumineux (max 120 Mo).',
         ]);
 
         $results = [];
