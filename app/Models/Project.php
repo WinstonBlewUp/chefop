@@ -11,7 +11,14 @@ class Project extends Model
         'slug',
         'description',
         'category_id',
-        'is_selected_work',
+        'is_selected_work',   
+        'project_type',
+        'director',
+        'productors',
+        'production_company',
+        'distributor',
+        'award',
+        'misc',    
     ];
 
     protected $casts = [
