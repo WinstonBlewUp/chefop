@@ -35,6 +35,7 @@ class ProjectController extends Controller
             'slug' => 'nullable|string|unique:projects,slug|unique:pages,slug',
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
+            'is_selected_work' => 'nullable|boolean',
             'media' => 'array',
             'media.*' => 'exists:media,id',
         ]);
@@ -56,6 +57,7 @@ class ProjectController extends Controller
             'slug' => $validated['slug'],
             'description' => $validated['description'] ?? null,
             'category_id' => $validated['category_id'] ?? null,
+            'is_selected_work' => $request->has('is_selected_work'),
         ]);
 
         if (!empty($validated['media'])) {
@@ -87,6 +89,7 @@ class ProjectController extends Controller
             'slug' => $formData['slug'],
             'description' => $formData['description'] ?? null,
             'category_id' => null,
+            'is_selected_work' => isset($formData['is_selected_work']),
         ]);
 
         if (!empty($formData['media'])) {
@@ -124,6 +127,7 @@ class ProjectController extends Controller
             'slug' => 'nullable|string|unique:projects,slug,' . $project->id . '|unique:pages,slug,' . optional($project->pages()->first())->id,
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
+            'is_selected_work' => 'nullable|boolean',
             'media' => 'array',
             'media.*' => 'exists:media,id',
         ]);
@@ -135,6 +139,7 @@ class ProjectController extends Controller
             'slug' => $validated['slug'],
             'description' => $validated['description'] ?? null,
             'category_id' => $validated['category_id'] ?? null,
+            'is_selected_work' => $request->has('is_selected_work'),
         ]);
 
         $project->media()->sync($validated['media'] ?? []);

@@ -11,8 +11,7 @@ use App\Models\Category;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    $selectedWorkCategory = Category::where('slug', 'selected-work')->first();
-    $selectedWorkProjects = $selectedWorkCategory ? $selectedWorkCategory->projects()->with('media')->get() : collect();
+    $selectedWorkProjects = \App\Models\Project::where('is_selected_work', true)->with('media')->get();
     
     return view('home', compact('selectedWorkProjects'));
 });
