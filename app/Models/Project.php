@@ -11,6 +11,11 @@ class Project extends Model
         'slug',
         'description',
         'category_id',
+        'is_selected_work',
+    ];
+
+    protected $casts = [
+        'is_selected_work' => 'boolean',
     ];
 
     public function media()

@@ -18,42 +18,40 @@ class MediaController extends Controller
 
     public function upload(Request $request)
     {
+        \Log::info('Upload request received', [
+            'has_file' => $request->hasFile('file'),
+            'has_files' => $request->hasFile('files'),
+            'file_size' => $request->hasFile('file') ? $request->file('file')->getSize() : null,
+            'file_type' => $request->hasFile('file') ? $request->file('file')->getMimeType() : null,
+        ]);
+
         try {
+            // Support multi-fichiers
+            if ($request->hasFile('files')) {
+                return $this->uploadMultiple($request);
+            }
+            
             $request->validate([
-                'file' => 'required|file|mimes:jpeg,png,jpg,gif,webp,mp4,mov,avi,mkv,wmv,flv|max:102400', // max 100 Mo
+                'file' => 'required|file|mimes:jpeg,png,jpg,gif,webp,bmp,tiff,svg,mp4,mov,avi,mkv,wmv,flv,webm,m4v,3gp,ogv,m2v,mts,m2ts,ts,vob,f4v,asf|max:122880', // max 120 Mo
             ], [
                 'file.required' => 'Veuillez sélectionner un fichier.',
                 'file.file' => 'Le fichier sélectionné n\'est pas valide.',
-                'file.mimes' => 'Format de fichier non supporté. Formats acceptés : JPEG, PNG, JPG, GIF, WEBP, MP4, MOV, AVI, MKV, WMV, FLV.',
-                'file.max' => 'Le fichier est trop volumineux. Taille maximale autorisée : 100 Mo.',
+                'file.mimes' => 'Format de fichier non supporté. Formats acceptés : Images (JPEG, PNG, GIF, WEBP, BMP, TIFF, SVG) et Vidéos (MP4, MOV, AVI, MKV, WMV, FLV, WEBM, M4V, 3GP, OGV, etc.).',
+                'file.max' => 'Le fichier est trop volumineux. Taille maximale autorisée : 120 Mo.',
             ]);
 
             $file = $request->file('file');
+            $media = $this->processFile($file);
             
-            // Vérifications supplémentaires
-            if (!$file->isValid()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Fichier corrompu ou invalide.'
-                ], 422);
-            }
-
-            // Générer un nom unique pour éviter les conflits
-            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $extension = $file->getClientOriginalExtension();
-            $fileName = Str::slug($originalName) . '_' . time() . '.' . $extension;
-            
-            $path = $file->storeAs('media', $fileName, 'public');
-
-            $media = Media::create([
-                'file_path' => $path,
-                'type' => $file->getMimeType(),
-            ]);
-
             return response()->json([
                 'success' => true,
                 'message' => 'Fichier uploadé avec succès !',
-                'media' => $media
+                'media' => [
+                    'id' => $media->id,
+                    'file_path' => $media->file_path,
+                    'type' => $media->type,
+                    'url' => $media->url
+                ]
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -67,5 +65,80 @@ class MediaController extends Controller
                 'message' => 'Erreur lors de l\'upload : ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    private function uploadMultiple(Request $request)
+    {
+        $request->validate([
+            'files' => 'required|array|max:10',
+            'files.*' => 'file|mimes:jpeg,png,jpg,gif,webp,bmp,tiff,svg,mp4,mov,avi,mkv,wmv,flv,webm,m4v,3gp,ogv,m2v,mts,m2ts,ts,vob,f4v,asf|max:122880',
+        ], [
+            'files.required' => 'Veuillez sélectionner au moins un fichier.',
+            'files.array' => 'Format de données invalide.',
+            'files.max' => 'Vous ne pouvez pas uploader plus de 10 fichiers à la fois.',
+            'files.*.file' => 'Un des fichiers sélectionnés n\'est pas valide.',
+            'files.*.mimes' => 'Un ou plusieurs fichiers ont un format non supporté.',
+            'files.*.max' => 'Un ou plusieurs fichiers sont trop volumineux (max 120 Mo).',
+        ]);
+
+        $results = [];
+        $successCount = 0;
+        $errors = [];
+
+        foreach ($request->file('files') as $file) {
+            try {
+                $media = $this->processFile($file);
+                $results[] = [
+                    'id' => $media->id,
+                    'file_path' => $media->file_path,
+                    'type' => $media->type,
+                    'url' => $media->url
+                ];
+                $successCount++;
+            } catch (\Exception $e) {
+                $errors[] = $file->getClientOriginalName() . ': ' . $e->getMessage();
+            }
+        }
+
+        if ($successCount > 0 && empty($errors)) {
+            return response()->json([
+                'success' => true,
+                'message' => "$successCount fichier(s) uploadé(s) avec succès !",
+                'media' => $results
+            ]);
+        } elseif ($successCount > 0 && !empty($errors)) {
+            return response()->json([
+                'success' => true,
+                'message' => "$successCount fichier(s) uploadé(s), " . count($errors) . " erreur(s).",
+                'media' => $results,
+                'errors' => $errors
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucun fichier n\'a pu être uploadé.',
+                'errors' => $errors
+            ], 422);
+        }
+    }
+
+    private function processFile($file)
+    {
+        // Vérifications supplémentaires
+        if (!$file->isValid()) {
+            throw new \Exception('Fichier corrompu ou invalide.');
+        }
+
+        // Générer un nom unique pour éviter les conflits
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $extension = $file->getClientOriginalExtension();
+        $fileName = Str::slug($originalName) . '_' . time() . '_' . Str::random(8) . '.' . $extension;
+        
+        $path = $file->storeAs('media', $fileName, 'public');
+
+        return Media::create([
+            'file_path' => $path,
+            'type' => $file->getMimeType(),
+        ]);
     }
 }
