@@ -19,6 +19,7 @@ class ProjectController extends Controller
         $regularProjects = Project::where('is_locked', false)->orWhereNull('is_locked')->latest()->get();
         $media = Media::latest()->get();
         $categories = Category::all();
+
         return view('dashboard.projects.index', compact('media', 'categories', 'projects', 'stillsProject', 'regularProjects'));
     }
 
@@ -35,33 +36,51 @@ class ProjectController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'slug' => 'nullable|string|unique:projects,slug|unique:pages,slug',
-            'description' => 'nullable|string',
-            'category_id' => 'nullable|exists:categories,id',
-            'is_selected_work' => 'nullable|boolean',
-            'media' => 'array',
-            'media.*' => 'exists:media,id',
-        ]);
+            'title'               => 'required|string|max:255',
+            'slug'                => 'nullable|string|unique:projects,slug|unique:pages,slug',
+            'description'         => 'nullable|string',
+            'category_id'         => 'nullable|exists:categories,id',
+            'is_selected_work'    => 'nullable|boolean',
 
-        /* dd($validated); */
+            // Nouveaux champs
+            'project_type'        => 'nullable|string|max:255',
+            'director'            => 'nullable|string|max:255',
+            'productors'          => 'nullable|string|max:255',
+            'production_company'  => 'nullable|string|max:255',
+            'distributor'         => 'nullable|string|max:255',
+            'award'               => 'nullable|string|max:255',
+            'misc'                => 'nullable|string|max:255',
+
+            // Médias
+            'media'               => 'array',
+            'media.*'             => 'exists:media,id',
+        ]);
 
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
 
-        // Vérifier si aucune catégorie n'a été sélectionnée
+        // Si aucune catégorie n'a été sélectionnée, on renvoie toutes les données au front (modale)
         if (empty($validated['category_id'])) {
             return redirect()->route('dashboard.projects.create')->with([
                 'show_category_modal' => true,
-                'form_data' => $validated
+                'form_data' => $validated,
             ]);
         }
 
         $project = Project::create([
-            'title' => $validated['title'],
-            'slug' => $validated['slug'],
-            'description' => $validated['description'] ?? null,
-            'category_id' => $validated['category_id'] ?? null,
-            'is_selected_work' => $request->has('is_selected_work'),
+            'title'              => $validated['title'],
+            'slug'               => $validated['slug'],
+            'description'        => $validated['description'] ?? null,
+            'category_id'        => $validated['category_id'] ?? null,
+            'is_selected_work'   => $request->boolean('is_selected_work'),
+
+            // Nouveaux champs
+            'project_type'       => $validated['project_type'] ?? null,
+            'director'           => $validated['director'] ?? null,
+            'productors'         => $validated['productors'] ?? null,
+            'production_company' => $validated['production_company'] ?? null,
+            'distributor'        => $validated['distributor'] ?? null,
+            'award'              => $validated['award'] ?? null,
+            'misc'               => $validated['misc'] ?? null,
         ]);
 
         if (!empty($validated['media'])) {
@@ -70,11 +89,11 @@ class ProjectController extends Controller
 
         // Créer automatiquement une page associée au projet
         Page::create([
-            'title' => $validated['title'],
-            'slug' => $validated['slug'],
-            'content' => $validated['description'] ?? '',
-            'template' => 'default',
-            'published' => false, // Par défaut non publié
+            'title'      => $validated['title'],
+            'slug'       => $validated['slug'],
+            'content'    => $validated['description'] ?? '',
+            'template'   => 'default',
+            'published'  => false, // Par défaut non publié
             'project_id' => $project->id,
         ]);
 
@@ -86,14 +105,24 @@ class ProjectController extends Controller
 
     public function storeWithoutCategory(Request $request)
     {
-        $formData = $request->input('form_data');
-        
+        // Données renvoyées par la modale (issues du validated précédent)
+        $formData = $request->input('form_data', []);
+
         $project = Project::create([
-            'title' => $formData['title'],
-            'slug' => $formData['slug'],
-            'description' => $formData['description'] ?? null,
-            'category_id' => null,
-            'is_selected_work' => isset($formData['is_selected_work']),
+            'title'              => $formData['title'],
+            'slug'               => $formData['slug'],
+            'description'        => $formData['description'] ?? null,
+            'category_id'        => null,
+            'is_selected_work'   => !empty($formData['is_selected_work']),
+
+            // Nouveaux champs
+            'project_type'       => $formData['project_type'] ?? null,
+            'director'           => $formData['director'] ?? null,
+            'productors'         => $formData['productors'] ?? null,
+            'production_company' => $formData['production_company'] ?? null,
+            'distributor'        => $formData['distributor'] ?? null,
+            'award'              => $formData['award'] ?? null,
+            'misc'               => $formData['misc'] ?? null,
         ]);
 
         if (!empty($formData['media'])) {
@@ -102,11 +131,11 @@ class ProjectController extends Controller
 
         // Créer automatiquement une page associée au projet
         Page::create([
-            'title' => $formData['title'],
-            'slug' => $formData['slug'],
-            'content' => $formData['description'] ?? '',
-            'template' => 'default',
-            'published' => false,
+            'title'      => $formData['title'],
+            'slug'       => $formData['slug'],
+            'content'    => $formData['description'] ?? '',
+            'template'   => 'default',
+            'published'  => false,
             'project_id' => $project->id,
         ]);
 
@@ -127,33 +156,51 @@ class ProjectController extends Controller
     public function update(Request $request, Project $project)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'slug' => 'nullable|string|unique:projects,slug,' . $project->id . '|unique:pages,slug,' . optional($project->pages()->first())->id,
-            'description' => 'nullable|string',
-            'category_id' => 'nullable|exists:categories,id',
-            'is_selected_work' => 'nullable|boolean',
-            'media' => 'array',
-            'media.*' => 'exists:media,id',
+            'title'               => 'required|string|max:255',
+            'slug'                => 'nullable|string|unique:projects,slug,' . $project->id . '|unique:pages,slug,' . optional($project->pages()->first())->id,
+            'description'         => 'nullable|string',
+            'category_id'         => 'nullable|exists:categories,id',
+            'is_selected_work'    => 'nullable|boolean',
+
+            // Nouveaux champs
+            'project_type'        => 'nullable|string|max:255',
+            'director'            => 'nullable|string|max:255',
+            'productors'          => 'nullable|string|max:255',
+            'production_company'  => 'nullable|string|max:255',
+            'distributor'         => 'nullable|string|max:255',
+            'award'               => 'nullable|string|max:255',
+            'misc'                => 'nullable|string|max:255',
+
+            'media'               => 'array',
+            'media.*'             => 'exists:media,id',
         ]);
 
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
 
         $project->update([
-            'title' => $validated['title'],
-            'slug' => $validated['slug'],
-            'description' => $validated['description'] ?? null,
-            'category_id' => $validated['category_id'] ?? null,
-            'is_selected_work' => $request->has('is_selected_work'),
+            'title'              => $validated['title'],
+            'slug'               => $validated['slug'],
+            'description'        => $validated['description'] ?? null,
+            'category_id'        => $validated['category_id'] ?? null,
+            'is_selected_work'   => $request->boolean('is_selected_work'),
+
+            // Nouveaux champs
+            'project_type'       => $validated['project_type'] ?? null,
+            'director'           => $validated['director'] ?? null,
+            'productors'         => $validated['productors'] ?? null,
+            'production_company' => $validated['production_company'] ?? null,
+            'distributor'        => $validated['distributor'] ?? null,
+            'award'              => $validated['award'] ?? null,
+            'misc'               => $validated['misc'] ?? null,
         ]);
 
         $project->media()->sync($validated['media'] ?? []);
 
         // Mettre à jour la page associée si elle existe
-        $associatedPage = $project->pages()->first();
-        if ($associatedPage) {
+        if ($associatedPage = $project->pages()->first()) {
             $associatedPage->update([
-                'title' => $validated['title'],
-                'slug' => $validated['slug'],
+                'title'   => $validated['title'],
+                'slug'    => $validated['slug'],
                 'content' => $validated['description'] ?? '',
             ]);
         }
@@ -178,12 +225,12 @@ class ProjectController extends Controller
     public function publishPage(Project $project)
     {
         $page = $project->pages()->first();
-        
+
         if ($page) {
             $page->update(['published' => true]);
             return response()->json(['success' => true, 'message' => 'Page publiée avec succès.']);
         }
-        
+
         return response()->json(['success' => false, 'message' => 'Page non trouvée.']);
     }
 }
