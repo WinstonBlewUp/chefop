@@ -143,7 +143,50 @@
                     <h3 class="text-lg font-bold text-gray-900">Projets existants</h3>
                 </div>
 
-                @forelse ($projects ?? [] as $proj)
+                {{-- Projet Stills mis en évidence --}}
+                @if($stillsProject)
+                    <div class="flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-400 p-4 rounded-lg mb-4 shadow-sm">
+                        <div class="flex items-center space-x-4">
+                            <div class="p-2 rounded-full bg-blue-100">
+                                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="font-medium text-gray-900 flex items-center">
+                                    {{ $stillsProject->title }}
+                                    <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        Projet spécial
+                                    </span>
+                                </div>
+                                <div class="text-sm text-gray-500">{{ $stillsProject->slug }} • Collection de médias stills</div>
+                                <div class="text-xs text-blue-600 mt-1">{{ $stillsProject->media->count() }} média(s) associé(s)</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-2">
+                            <a href="{{ route('dashboard.projects.edit', $stillsProject) }}"
+                               class="inline-flex items-center px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                Modifier
+                            </a>
+                            <span class="inline-flex items-center px-3 py-1.5 text-sm bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed" title="Ce projet ne peut pas être supprimé">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                                </svg>
+                                Protégé
+                            </span>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Projets réguliers --}}
+                @forelse ($regularProjects ?? [] as $proj)
                     <div class="flex items-center justify-between bg-gray-50 p-4 rounded-lg mb-3 hover:bg-gray-100 transition-colors">
                         <div class="flex items-center space-x-4">
                             <div class="p-2 rounded-full bg-green-100">
@@ -175,9 +218,9 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="flex items-center space-x-2">
-                            <a href="{{ route('dashboard.projects.edit', $proj) }}" 
+                            <a href="{{ route('dashboard.projects.edit', $proj) }}"
                                class="inline-flex items-center px-3 py-1.5 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>

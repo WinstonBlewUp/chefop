@@ -8,6 +8,7 @@ use App\Http\Controllers\Dashboard\ProjectController;
 use App\Models\MenuLink;
 use App\Models\Page;
 use App\Models\Category;
+use App\Models\Project;   
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -71,10 +72,9 @@ Route::get('/categories/{slug}', function (string $slug) {
 })->name('categories.show');
 
 Route::get('/stills', function () {
-    $stillsCategory = Category::where('slug', 'stills')->first();
-    $stillsProjects = $stillsCategory ? $stillsCategory->projects()->with('media')->get() : collect();
-    
-    return view('stills', compact('stillsProjects'));
+    $stillsProject = Project::where('slug', 'stills')->where('is_locked', true)->with('media')->first();
+
+    return view('stills', compact('stillsProject'));
 });
 
 Route::get('/contact', function () {

@@ -12,10 +12,12 @@ class Project extends Model
         'description',
         'category_id',
         'is_selected_work',
+        'is_locked',
     ];
 
     protected $casts = [
         'is_selected_work' => 'boolean',
+        'is_locked' => 'boolean',
     ];
 
     public function media()
