@@ -15,9 +15,12 @@ class ProjectController extends Controller
     public function index()
     {
         $projects = Project::latest()->get();
+        $stillsProject = Project::where('slug', 'stills')->where('is_locked', true)->first();
+        $regularProjects = Project::where('is_locked', false)->orWhereNull('is_locked')->latest()->get();
         $media = Media::latest()->get();
         $categories = Category::all();
-        return view('dashboard.projects.index', compact('media', 'categories', 'projects'));
+
+        return view('dashboard.projects.index', compact('media', 'categories', 'projects', 'stillsProject', 'regularProjects'));
     }
 
     public function create()
@@ -25,7 +28,9 @@ class ProjectController extends Controller
         $media = Media::latest()->get();
         $categories = Category::all();
         $projects = Project::latest()->get();
-        return view('dashboard.projects.create', compact('media', 'categories', 'projects'));
+        $stillsProject = Project::where('slug', 'stills')->where('is_locked', true)->first();
+        $regularProjects = Project::where('is_locked', false)->orWhereNull('is_locked')->latest()->get();
+        return view('dashboard.projects.create', compact('media', 'categories', 'projects', 'stillsProject', 'regularProjects'));
     }
 
     public function store(Request $request)
@@ -205,6 +210,11 @@ class ProjectController extends Controller
 
     public function destroy(Project $project)
     {
+        // Empêcher la suppression des projets verrouillés
+        if ($project->is_locked) {
+            return redirect()->route('dashboard')->with('error', 'Ce projet ne peut pas être supprimé.');
+        }
+
         // Supprimer les pages associées
         $project->pages()->delete();
 

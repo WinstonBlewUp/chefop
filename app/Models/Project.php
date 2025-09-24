@@ -11,7 +11,8 @@ class Project extends Model
         'slug',
         'description',
         'category_id',
-        'is_selected_work',   
+        'is_selected_work',
+        'is_locked', 
         'project_type',
         'director',
         'productors',
@@ -19,10 +20,12 @@ class Project extends Model
         'distributor',
         'award',
         'misc',    
+
     ];
 
     protected $casts = [
         'is_selected_work' => 'boolean',
+        'is_locked' => 'boolean',
     ];
 
     public function media()
