@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ strtoupper($category->name) }}</title>
     @vite('resources/css/app.css')
 </head>
