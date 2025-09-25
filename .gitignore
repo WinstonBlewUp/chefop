@@ -55,3 +55,4 @@ phpunit.xml
 # Misc
 *.sublime-project
 *.sublime-workspace
+CLAUDE.md
