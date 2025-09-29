@@ -23,6 +23,7 @@ class MediaController extends Controller
             'has_files' => $request->hasFile('files'),
             'file_size' => $request->hasFile('file') ? $request->file('file')->getSize() : null,
             'file_type' => $request->hasFile('file') ? $request->file('file')->getMimeType() : null,
+            'all_files' => array_keys($request->allFiles()),
         ]);
 
         try {
@@ -30,7 +31,24 @@ class MediaController extends Controller
             if ($request->hasFile('files')) {
                 return $this->uploadMultiple($request);
             }
-            
+
+            // Si pas de fichier 'file' mais qu'il y a d'autres fichiers, essayons de les traiter
+            if (!$request->hasFile('file')) {
+                $allFiles = $request->allFiles();
+                if (!empty($allFiles)) {
+                    // Prendre le premier fichier disponible, quel que soit son nom
+                    $fileKey = array_keys($allFiles)[0];
+                    $request->merge([$fileKey => $request->file($fileKey)]);
+                    // Créer une nouvelle requête avec le fichier sous le nom 'file'
+                    $files = $request->allFiles();
+                    $firstFile = reset($files);
+                    if (is_array($firstFile)) {
+                        $firstFile = reset($firstFile);
+                    }
+                    $request->files->set('file', $firstFile);
+                }
+            }
+
             $request->validate([
                 'file' => 'required|file|mimes:jpeg,png,jpg,gif,webp,bmp,tiff,svg,mp4,mov,avi,mkv,wmv,flv,webm,m4v,3gp,ogv,m2v,mts,m2ts,ts,vob,f4v,asf|max:122880', // max 120 Mo
             ], [
@@ -55,11 +73,19 @@ class MediaController extends Controller
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation error in upload', [
+                'errors' => $e->validator->errors()->all(),
+                'first_error' => $e->validator->errors()->first('file')
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => $e->validator->errors()->first('file')
             ], 422);
         } catch (\Exception $e) {
+            \Log::error('Exception in upload', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de l\'upload : ' . $e->getMessage()
@@ -69,17 +95,34 @@ class MediaController extends Controller
 
     private function uploadMultiple(Request $request)
     {
-        $request->validate([
-            'files' => 'required|array|max:10',
-            'files.*' => 'file|mimes:jpeg,png,jpg,gif,webp,bmp,tiff,svg,mp4,mov,avi,mkv,wmv,flv,webm,m4v,3gp,ogv,m2v,mts,m2ts,ts,vob,f4v,asf|max:122880',
-        ], [
-            'files.required' => 'Veuillez sélectionner au moins un fichier.',
-            'files.array' => 'Format de données invalide.',
-            'files.max' => 'Vous ne pouvez pas uploader plus de 10 fichiers à la fois.',
-            'files.*.file' => 'Un des fichiers sélectionnés n\'est pas valide.',
-            'files.*.mimes' => 'Un ou plusieurs fichiers ont un format non supporté.',
-            'files.*.max' => 'Un ou plusieurs fichiers sont trop volumineux (max 120 Mo).',
+        \Log::info('uploadMultiple called', [
+            'files_data' => $request->file('files'),
+            'files_count' => $request->file('files') ? count($request->file('files')) : 0,
+            'is_array' => is_array($request->file('files')),
         ]);
+
+        try {
+            $request->validate([
+                'files' => 'required|array|max:10',
+                'files.*' => 'file|mimes:jpeg,png,jpg,gif,webp,bmp,tiff,svg,mp4,mov,avi,mkv,wmv,flv,webm,m4v,3gp,ogv,m2v,mts,m2ts,ts,vob,f4v,asf|max:122880',
+            ], [
+                'files.required' => 'Veuillez sélectionner au moins un fichier.',
+                'files.array' => 'Format de données invalide.',
+                'files.max' => 'Vous ne pouvez pas uploader plus de 10 fichiers à la fois.',
+                'files.*.file' => 'Un des fichiers sélectionnés n\'est pas valide.',
+                'files.*.mimes' => 'Un ou plusieurs fichiers ont un format non supporté.',
+                'files.*.max' => 'Un ou plusieurs fichiers sont trop volumineux (max 120 Mo).',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation error in uploadMultiple', [
+                'errors' => $e->validator->errors()->all(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => $e->validator->errors()->first(),
+                'errors' => $e->validator->errors()->all()
+            ], 422);
+        }
 
         $results = [];
         $successCount = 0;
