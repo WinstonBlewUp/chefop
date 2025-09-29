@@ -36,7 +36,10 @@
                     @if($stillsProject)
                         @php
                             // Créer un objet page fictif pour le composant grid
-                            $page = (object) ['project' => $stillsProject];
+                            $page = (object) [
+                                'project' => $stillsProject,
+                                'category' => $stillsProject->category
+                            ];
                         @endphp
                         @include('components.grid', ['page' => $page])
                     @else
