@@ -56,3 +56,9 @@ phpunit.xml
 *.sublime-project
 *.sublime-workspace
 CLAUDE.md
+
+# Security - Private keys
+*.pem
+*.key
+*.p12
+*.pfx
