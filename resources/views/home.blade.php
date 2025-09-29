@@ -10,40 +10,42 @@
 <body>
     @include('components.navbar')
     
-    <div class="bg-white w-full lg:pr-20 py-5">
-        <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
-            <div class="flex gap-4 lg:gap-8">
-                {{-- Navigation latérale des projets - Cachée sur mobile --}}
-                <div class="hidden lg:block w-40 flex-shrink-0 {{ $selectedWorkProjects->count() > 1 ? 'opacity-100' : 'opacity-0 pointer-events-none' }}">
-                    <div class="sticky top-8">
-                        <h3 class="font-semibold text-gray-900 text-sm uppercase tracking-wide mb-4">
-                            Selected Work
-                        </h3>
-                        <div class="space-y-2">
-                            @foreach($selectedWorkProjects as $project)
-                                <a href="{{ route('pages.show', $project->slug) }}"
-                                   class="block py-2 px-2 text-sm transition-colors hover:bg-gray-100 text-gray-700">
-                                    {{ $project->title }}
-                                </a>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
+    <div class="container mx-auto py-8">
+        <h1 class="text-3xl font-bold text-center mb-8">Selected Work</h1>
 
-                {{-- Contenu principal responsive --}}
-                <div class="flex-1 pr-0 lg:pr-12">
-                    <h1 class="text-3xl font-bold text-center mb-8">Selected Work</h1>
-
-                    {{-- Grille des projets Selected Work --}}
-                    @if($selectedWorkProjects->isNotEmpty())
-                        <div class="flex flex-wrap justify-center gap-2 sm:gap-4">
+        @if($selectedWorkProjects->isNotEmpty())
+            {{-- Grille des projets Selected Work --}}
+            <div class="flex flex-wrap justify-center gap-4 px-6">
                             @foreach ($selectedWorkProjects as $project)
                                 @php
-                                    $media = $project->media->first();
+                                    // Sélectionner le média avec le meilleur ratio pour remplir l'espace
+                                    $idealRatio = 1.5; // Ratio idéal pour un bon remplissage
+                                    $bestMedia = null;
+                                    $bestScore = PHP_FLOAT_MAX;
+
+                                    foreach ($project->media as $media) {
+                                        $ratio = 1.77; // ratio par défaut
+                                        if (Str::startsWith($media->type, 'image/')) {
+                                            $imagePath = storage_path("app/public/" . $media->file_path);
+                                            if (file_exists($imagePath)) {
+                                                [$width, $height] = getimagesize($imagePath);
+                                                $ratio = $width / $height;
+                                            }
+                                        }
+
+                                        // Calculer la différence avec le ratio idéal
+                                        $score = abs($ratio - $idealRatio);
+                                        if ($score < $bestScore) {
+                                            $bestScore = $score;
+                                            $bestMedia = $media;
+                                        }
+                                    }
+
+                                    $media = $bestMedia ?: $project->media->first();
                                 @endphp
                                 @if ($media)
                                     {{-- Responsive sizing: pleine largeur sur mobile, puis adaptatif --}}
-                                    <a href="{{ route('pages.show', $project->slug) }}" class="block relative h-48 sm:h-60 w-full sm:max-w-[45%] lg:max-w-[40%] lg:min-w-[15%]">
+                                    <a href="{{ route('pages.show', $project->slug) }}" class="block relative h-60 max-w-[40%] min-w-[15%] group overflow-hidden">
                                         @if (Str::startsWith($media->type, 'image/'))
                                             <img
                                                 src="{{ asset('storage/' . $media->file_path) }}"
@@ -57,16 +59,19 @@
                                                 muted autoplay loop
                                             ></video>
                                         @endif
+                                        {{-- Overlay discret en bas à gauche avec slide in --}}
+                                        <div class="absolute bottom-3 left-3 bg-white bg-opacity-90 backdrop-blur-sm rounded-sm px-2 py-1 transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                                            <span class="text-gray-900 font-medium text-xs sm:text-sm">
+                                                {{ $project->title }}
+                                            </span>
+                                        </div>
                                     </a>
                                 @endif
                             @endforeach
                         </div>
-                    @else
-                        <div class="text-center text-gray-400 py-12">Aucun projet sélectionné à afficher.</div>
-                    @endif
-                </div>
-            </div>
-        </div>
+        @else
+            <div class="text-center text-gray-400 py-12">Aucun projet sélectionné à afficher.</div>
+        @endif
     </div>
 </body>
 </html>
