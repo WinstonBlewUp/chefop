@@ -26,12 +26,12 @@
                 @foreach ($menuLinks as $link)
                     @if($link->page_id)
                         <a href="{{ route('pages.show', $link->slug) }}"
-                            class="text-sm text-gray-700 hover:text-indigo-600 transition">
+                            class="text-sm text-gray-700 hover:text-indigo-600 transition {{ request()->is('pages/' . $link->slug) ? 'font-bold' : '' }}">
                             {{ strtoupper($link->title) }}
                         </a>
                     @else
                         <a href="{{ route('categories.show', $link->slug) }}"
-                            class="text-sm text-gray-700 hover:text-indigo-600 transition">
+                            class="text-sm text-gray-700 hover:text-indigo-600 transition {{ request()->is('categories/' . $link->slug) ? 'font-bold' : '' }}">
                             {{ strtoupper($link->title) }}
                         </a>
                     @endif
@@ -83,12 +83,12 @@
                     @foreach ($menuLinks as $link)
                         @if($link->page_id)
                             <a href="{{ route('pages.show', $link->slug) }}"
-                                class="block text-lg text-gray-700 hover:text-indigo-600 transition py-2 border-b border-gray-100">
+                                class="block text-lg text-gray-700 hover:text-indigo-600 transition py-2 border-b border-gray-100 {{ request()->is('pages/' . $link->slug) ? 'font-bold' : '' }}">
                                 {{ strtoupper($link->title) }}
                             </a>
                         @else
                             <a href="{{ route('categories.show', $link->slug) }}"
-                                class="block text-lg text-gray-700 hover:text-indigo-600 transition py-2 border-b border-gray-100">
+                                class="block text-lg text-gray-700 hover:text-indigo-600 transition py-2 border-b border-gray-100 {{ request()->is('categories/' . $link->slug) ? 'font-bold' : '' }}">
                                 {{ strtoupper($link->title) }}
                             </a>
                         @endif
