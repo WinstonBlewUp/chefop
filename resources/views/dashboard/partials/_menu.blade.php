@@ -17,25 +17,23 @@
                         </div>
                     </div>
 
-                    @if ($menu->count() < 3)
-                        <form method="POST" action="{{ route('dashboard.menu.store') }}" class="flex items-center space-x-3">
-                            @csrf
-                            <select name="type" id="menuType" class="border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-yellow-200" onchange="updateItems()" required>
-                                <option value="">+ Ajouter un élément</option>
-                                <option value="page">📄 Page</option>
-                                <option value="category">📂 Catégorie</option>
-                            </select>
-                            <select name="item_id" id="menuItems" class="border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-yellow-200 hidden" required>
-                                <option value="">Sélectionner...</option>
-                            </select>
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors duration-200" id="submitBtn" style="display: none;">
-                                <span>Ajouter</span>
-                                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                </svg>
-                            </button>
-                        </form>
-                    @endif
+                    <form method="POST" action="{{ route('dashboard.menu.store') }}" class="flex items-center space-x-3">
+                        @csrf
+                        <select name="type" id="menuType" class="border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-yellow-200" onchange="updateItems()" required>
+                            <option value="">+ Ajouter un élément</option>
+                            <option value="page">📄 Page</option>
+                            <option value="category">📂 Catégorie</option>
+                        </select>
+                        <select name="item_id" id="menuItems" class="border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-yellow-200 hidden" required>
+                            <option value="">Sélectionner...</option>
+                        </select>
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors duration-200" id="submitBtn" style="display: none;">
+                            <span>Ajouter</span>
+                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </button>
+                    </form>
                 </div>
 
                 @if ($menu->isEmpty())
@@ -43,10 +41,15 @@
                         <p>Aucun élément dans le menu pour le moment.</p>
                     </div>
                 @else
-                    <div class="grid grid-cols-1 gap-3">
+                    <div id="menu-sortable" class="grid grid-cols-1 gap-3">
                         @foreach ($menu as $item)
-                            <div class="flex justify-between items-center bg-gray-50 px-4 py-3 rounded-lg border hover:bg-gray-100 transition-colors">
+                            <div class="menu-item flex justify-between items-center bg-gray-50 px-4 py-3 rounded-lg border hover:bg-gray-100 transition-colors cursor-move" data-id="{{ $item->id }}">
                                 <div class="flex items-center space-x-3">
+                                    <div class="drag-handle cursor-grab active:cursor-grabbing mr-2">
+                                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+                                        </svg>
+                                    </div>
                                     @if($item->page_id)
                                         <div class="p-2 rounded-full bg-blue-100">
                                             <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,11 +94,12 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
     // Données pour les options
     const pages = @json($availablePages ?? []);
     const categories = @json($availableCategories ?? []);
-    
+
     // Debug temporaire
     console.log('Pages disponibles:', pages);
     console.log('Catégories disponibles:', categories);
@@ -104,10 +108,10 @@
         const type = document.getElementById('menuType').value;
         const itemsSelect = document.getElementById('menuItems');
         const submitBtn = document.getElementById('submitBtn');
-        
+
         // Réinitialiser les options
         itemsSelect.innerHTML = '<option value="">Sélectionner...</option>';
-        
+
         if (type === 'page') {
             pages.forEach(page => {
                 const option = document.createElement('option');
@@ -131,4 +135,48 @@
             submitBtn.style.display = 'none';
         }
     }
+
+    // Initialiser SortableJS pour le drag and drop
+    document.addEventListener('DOMContentLoaded', function() {
+        const menuList = document.getElementById('menu-sortable');
+
+        if (menuList) {
+            new Sortable(menuList, {
+                animation: 150,
+                handle: '.drag-handle',
+                ghostClass: 'bg-yellow-100',
+                dragClass: 'opacity-50',
+                onEnd: function(evt) {
+                    // Récupérer le nouvel ordre
+                    const items = [];
+                    document.querySelectorAll('.menu-item').forEach((item, index) => {
+                        items.push({
+                            id: item.dataset.id,
+                            order: index + 1
+                        });
+                    });
+
+                    // Envoyer l'ordre au serveur
+                    fetch('{{ route('dashboard.menu.reorder') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ items: items })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('Ordre mis à jour avec succès');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur lors de la mise à jour de l\'ordre:', error);
+                        alert('Erreur lors de la sauvegarde de l\'ordre');
+                    });
+                }
+            });
+        }
+    });
 </script>

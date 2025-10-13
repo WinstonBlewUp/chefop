@@ -11,7 +11,7 @@
     @include('components.navbar')
     
     <div class="container mx-auto py-8">
-        <h1 class="text-3xl font-bold text-center mb-8">Selected Work</h1>
+        <!-- <h1 class="text-3xl font-bold text-center mb-8">Selected Work</h1> -->
 
         @if($selectedWorkProjects->isNotEmpty())
             {{-- Grille des projets Selected Work --}}

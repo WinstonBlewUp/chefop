@@ -49,11 +49,11 @@
                         <div class="flex flex-col md:flex-row md:justify-between gap-0">
                             {{-- Colonne gauche : title -> film_type -> director -> productors -> production_company -> distributor --}}
                             <div class="flex flex-col gap-0 min-w-0">
-                                @if (filled($proj->title))
+                                <!-- @if (filled($proj->title))
                                     <p class="leading-normal whitespace-nowrap  ">
                                         <span class="font-bold text-gray-900">"{{ $proj->title }}"</span>
                                     </p>
-                                @endif
+                                @endif -->
 
                                 @if (filled($filmType))
                                     <p class="leading-normal whitespace-nowrap   text-gray-800">
@@ -112,3 +112,6 @@
 </div>
 </body>
 </html>
+
+
+

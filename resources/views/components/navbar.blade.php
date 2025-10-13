@@ -19,7 +19,7 @@
             <div id="desktop-nav" class="desktop-only space-x-4 items-center">
                 <div class="mr-6">
                     <a href="/">
-                        <img src="{{ asset('logo.png') }}" alt="Logo" class="h-32 w-auto mr-5">
+                        <img src="{{ asset('logo2.png') }}" alt="Logo" class="h-12 w-auto mr-5">
                     </a>
                 </div>
 

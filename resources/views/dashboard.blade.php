@@ -51,12 +51,12 @@
                     <div class="flex items-center">
                         <div class="p-3 rounded-full bg-purple-100 mr-4">
                             <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                             </svg>
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-600">Catégories</p>
-                            <p class="text-2xl font-bold text-gray-900">3</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ $stats['total_categories'] }}</p>
                         </div>
                     </div>
                 </div>
@@ -70,7 +70,7 @@
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-600">Menu</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ $menu->count() }}/3</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ $menu->count() }}</p>
                         </div>
                     </div>
                 </div>
@@ -86,34 +86,35 @@
     <div class="py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {{-- Gestion des Pages --}}
+                {{-- Gestion des Catégories --}}
                 <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
                     <div class="p-6">
                         <div class="flex items-center mb-4">
-                            <div class="p-3 rounded-full bg-blue-100 mr-4">
-                                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            <div class="p-3 rounded-full bg-purple-100 mr-4">
+                                <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="text-xl font-bold text-gray-900">Gestion des Pages</h3>
-                                <p class="text-gray-600">Créez et modifiez vos pages</p>
+                                <h3 class="text-xl font-bold text-gray-900">Gestion des Catégories</h3>
+                                <p class="text-gray-600">Organisez vos projets</p>
                             </div>
                         </div>
-                        <p class="text-gray-600 mb-4">Gérez toutes vos pages, créez du contenu et organisez votre site web.</p>
-                        
-                        @if($stats['recent_pages']->count() > 0)
+                        <p class="text-gray-600 mb-4">Créez et gérez vos catégories pour organiser efficacement vos projets.</p>
+
+                        @if($stats['recent_categories']->count() > 0)
                             <div class="space-y-2 mb-4">
-                                @foreach($stats['recent_pages'] as $page)
-                                    <div class="text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded">
-                                        {{ $page->title }}
+                                @foreach($stats['recent_categories'] as $category)
+                                    <div class="text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded flex justify-between items-center">
+                                        <span>{{ $category->name }}</span>
+                                        <span class="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">{{ $category->projects_count }} projet(s)</span>
                                     </div>
                                 @endforeach
                             </div>
                         @endif
                         <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-500">{{ $stats['total_pages'] }} page(s) au total</span>
-                            <a href="{{ route('dashboard.pages.index') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                            <span class="text-sm text-gray-500">{{ $stats['total_categories'] }} catégorie(s) au total</span>
+                            <a href="{{ route('dashboard.categories.index') }}" class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200">
                                 <span>Gérer</span>
                                 <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>

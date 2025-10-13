@@ -17,28 +17,42 @@ class MenuController extends Controller
             'item_id' => 'required|integer',
         ]);
 
-        if (MenuLink::count() >= 3) {
-            return back()->with('error', 'Le menu ne peut contenir que 3 éléments.');
-        }
+        // Obtenir le prochain ordre disponible
+        $nextOrder = MenuLink::max('order') + 1;
 
         // Vérifier que l'élément existe selon le type
         if ($request->type === 'page') {
             $request->validate(['item_id' => 'exists:pages,id']);
-            MenuLink::create(['page_id' => $request->item_id]);
+            MenuLink::create(['page_id' => $request->item_id, 'order' => $nextOrder]);
             $message = 'Page ajoutée au menu.';
         } else {
             $request->validate(['item_id' => 'exists:categories,id']);
-            MenuLink::create(['category_id' => $request->item_id]);
+            MenuLink::create(['category_id' => $request->item_id, 'order' => $nextOrder]);
             $message = 'Catégorie ajoutée au menu.';
         }
 
         return back()->with('success', $message);
     }
 
+    public function reorder(Request $request)
+    {
+        $request->validate([
+            'items' => 'required|array',
+            'items.*.id' => 'required|exists:menu_links,id',
+            'items.*.order' => 'required|integer',
+        ]);
+
+        foreach ($request->items as $item) {
+            MenuLink::where('id', $item['id'])->update(['order' => $item['order']]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
     public function destroy(MenuLink $menuLink)
     {
         $menuLink->delete();
 
-        return back()->with('success', 'Page retirée du menu.');
+        return back()->with('success', 'Élément retiré du menu.');
     }
 }
