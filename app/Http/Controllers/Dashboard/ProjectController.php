@@ -39,17 +39,9 @@ class ProjectController extends Controller
             'title'               => 'required|string|max:255',
             'slug'                => 'nullable|string|unique:projects,slug|unique:pages,slug',
             'description'         => 'nullable|string',
+            'content'             => 'nullable|string',
             'category_id'         => 'nullable|exists:categories,id',
             'is_selected_work'    => 'nullable|boolean',
-
-            // Nouveaux champs
-            'project_type'        => 'nullable|string|max:255',
-            'director'            => 'nullable|string|max:255',
-            'productors'          => 'nullable|string|max:255',
-            'production_company'  => 'nullable|string|max:255',
-            'distributor'         => 'nullable|string|max:255',
-            'award'               => 'nullable|string|max:255',
-            'misc'                => 'nullable|string|max:255',
 
             // Médias
             'media'               => 'array',
@@ -70,17 +62,9 @@ class ProjectController extends Controller
             'title'              => $validated['title'],
             'slug'               => $validated['slug'],
             'description'        => $validated['description'] ?? null,
+            'content'            => $validated['content'] ?? null,
             'category_id'        => $validated['category_id'] ?? null,
             'is_selected_work'   => $request->boolean('is_selected_work'),
-
-            // Nouveaux champs
-            'project_type'       => $validated['project_type'] ?? null,
-            'director'           => $validated['director'] ?? null,
-            'productors'         => $validated['productors'] ?? null,
-            'production_company' => $validated['production_company'] ?? null,
-            'distributor'        => $validated['distributor'] ?? null,
-            'award'              => $validated['award'] ?? null,
-            'misc'               => $validated['misc'] ?? null,
         ]);
 
         if (!empty($validated['media'])) {
@@ -91,7 +75,7 @@ class ProjectController extends Controller
         Page::create([
             'title'      => $validated['title'],
             'slug'       => $validated['slug'],
-            'content'    => $validated['description'] ?? '',
+            'content'    => $validated['content'] ?? '',
             'template'   => 'default',
             'published'  => false, // Par défaut non publié
             'project_id' => $project->id,
@@ -112,17 +96,9 @@ class ProjectController extends Controller
             'title'              => $formData['title'],
             'slug'               => $formData['slug'],
             'description'        => $formData['description'] ?? null,
+            'content'            => $formData['content'] ?? null,
             'category_id'        => null,
             'is_selected_work'   => !empty($formData['is_selected_work']),
-
-            // Nouveaux champs
-            'project_type'       => $formData['project_type'] ?? null,
-            'director'           => $formData['director'] ?? null,
-            'productors'         => $formData['productors'] ?? null,
-            'production_company' => $formData['production_company'] ?? null,
-            'distributor'        => $formData['distributor'] ?? null,
-            'award'              => $formData['award'] ?? null,
-            'misc'               => $formData['misc'] ?? null,
         ]);
 
         if (!empty($formData['media'])) {
@@ -133,7 +109,7 @@ class ProjectController extends Controller
         Page::create([
             'title'      => $formData['title'],
             'slug'       => $formData['slug'],
-            'content'    => $formData['description'] ?? '',
+            'content'    => $formData['content'] ?? '',
             'template'   => 'default',
             'published'  => false,
             'project_id' => $project->id,
@@ -159,17 +135,9 @@ class ProjectController extends Controller
             'title'               => 'required|string|max:255',
             'slug'                => 'nullable|string|unique:projects,slug,' . $project->id . '|unique:pages,slug,' . optional($project->pages()->first())->id,
             'description'         => 'nullable|string',
+            'content'             => 'nullable|string',
             'category_id'         => 'nullable|exists:categories,id',
             'is_selected_work'    => 'nullable|boolean',
-
-            // Nouveaux champs
-            'project_type'        => 'nullable|string|max:255',
-            'director'            => 'nullable|string|max:255',
-            'productors'          => 'nullable|string|max:255',
-            'production_company'  => 'nullable|string|max:255',
-            'distributor'         => 'nullable|string|max:255',
-            'award'               => 'nullable|string|max:255',
-            'misc'                => 'nullable|string|max:255',
 
             'media'               => 'array',
             'media.*'             => 'exists:media,id',
@@ -181,17 +149,9 @@ class ProjectController extends Controller
             'title'              => $validated['title'],
             'slug'               => $validated['slug'],
             'description'        => $validated['description'] ?? null,
+            'content'            => $validated['content'] ?? null,
             'category_id'        => $validated['category_id'] ?? null,
             'is_selected_work'   => $request->boolean('is_selected_work'),
-
-            // Nouveaux champs
-            'project_type'       => $validated['project_type'] ?? null,
-            'director'           => $validated['director'] ?? null,
-            'productors'         => $validated['productors'] ?? null,
-            'production_company' => $validated['production_company'] ?? null,
-            'distributor'        => $validated['distributor'] ?? null,
-            'award'              => $validated['award'] ?? null,
-            'misc'               => $validated['misc'] ?? null,
         ]);
 
         $project->media()->sync($validated['media'] ?? []);
@@ -201,7 +161,7 @@ class ProjectController extends Controller
             $associatedPage->update([
                 'title'   => $validated['title'],
                 'slug'    => $validated['slug'],
-                'content' => $validated['description'] ?? '',
+                'content' => $validated['content'] ?? '',
             ]);
         }
 

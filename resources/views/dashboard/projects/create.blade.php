@@ -71,40 +71,8 @@
                     </div>
 
                     <div>
-                        <label class="block font-medium text-sm text-gray-700 mb-2">project_type</label>
-                        <input type="text" name="project_type" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-200 focus:border-green-400">
-                    </div>
-
-                    <div>
-                        <label class="block font-medium text-sm text-gray-700 mb-2">Director</label>
-                        <input type="text" name="director" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-200 focus:border-green-400">
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block font-medium text-sm text-gray-700 mb-2">Productors</label>
-                            <input type="text" name="productors" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-200 focus:border-green-400">
-                        </div>
-                        <div>
-                            <label class="block font-medium text-sm text-gray-700 mb-2">production_company</label>
-                            <input type="text" name="production_company" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-200 focus:border-green-400">
-                        </div>
-                    </div>                    
-
-                    <div>
-                        <label class="block font-medium text-sm text-gray-700 mb-2">Distributor</label>
-                        <input type="text" name="distributor" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-200 focus:border-green-400">
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block font-medium text-sm text-gray-700 mb-2">Award</label>
-                            <input type="text" name="award" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-200 focus:border-green-400">
-                        </div>
-                        <div>
-                            <label class="block font-medium text-sm text-gray-700 mb-2">Misc</label>
-                            <input type="text" name="misc" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-200 focus:border-green-400">
-                        </div>
+                        <label class="block font-medium text-sm text-gray-700 mb-2">Contenu du projet</label>
+                        <textarea id="content" name="content" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-200 focus:border-green-400"></textarea>
                     </div>
 
                     
@@ -480,4 +448,6 @@
         });
     </script>
 @endif
+
+{{-- TinyMCE Editor - Initialisé via resources/js/tinymce-init.js --}}
 @endsection

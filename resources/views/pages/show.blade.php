@@ -38,72 +38,10 @@
                     @include('components.grid', ['page' => $page])
                 </div>
 
-               {{-- Infos projet en dessous de la grille --}}
-                <div class="mt-6 text-[14px]">
-                    @php
-                        $proj = $page->project;
-                        $filmType = $proj->film_type ?? $proj->project_type ?? null; // compat
-                    @endphp
-
-                    @if ($proj)
-                        <div class="flex flex-col md:flex-row md:justify-between gap-0">
-                            {{-- Colonne gauche : title -> film_type -> director -> productors -> production_company -> distributor --}}
-                            <div class="flex flex-col gap-0 min-w-0">
-                                <!-- @if (filled($proj->title))
-                                    <p class="leading-normal whitespace-nowrap  ">
-                                        <span class="font-bold text-gray-900">"{{ $proj->title }}"</span>
-                                    </p>
-                                @endif -->
-
-                                @if (filled($filmType))
-                                    <p class="leading-normal whitespace-nowrap   text-gray-800">
-                                        {{ $filmType }}
-                                    </p>
-                                @endif
-
-                                @if (filled($proj->director))
-                                    <p class="leading-normal whitespace-nowrap  ">
-                                        <span class="text-gray-600">Director :</span>
-                                        <span class="text-gray-900"> {{ $proj->director }}</span>
-                                    </p>
-                                @endif
-
-                                @if (filled($proj->productors))
-                                    <p class="leading-normal whitespace-nowrap  ">
-                                        <span class="italic text-gray-600">produced by </span>
-                                        <span class="italic text-gray-900">{{ $proj->productors }}</span>
-                                    </p>
-                                @endif
-
-                                @if (filled($proj->production_company))
-                                    <p class="leading-normal whitespace-nowrap  ">
-                                        <span class="text-gray-900">{{ $proj->production_company }}</span>
-                                    </p>
-                                @endif
-
-                                @if (filled($proj->distributor))
-                                    <p class="leading-normal whitespace-nowrap  ">
-                                        <span class="text-gray-600">Distribué par </span>
-                                        <span class="text-gray-900">{{ $proj->distributor }}</span>
-                                    </p>
-                                @endif
-                            </div>
-
-                            {{-- Colonne droite : award -> misc (à l’autre bout) --}}
-                            <div class="flex flex-col gap-0 ml-auto w-max text-right">
-                @if (filled($proj->award))
-                    <p class="leading-normal whitespace-nowrap overflow-visible">
-                        <span class="font-semibold text-gray-900">{{ $proj->award }}</span>
-                    </p>
-                @endif
-
-                @if (filled($proj->misc))
-                    <p class="leading-normal whitespace-nowrap overflow-visible text-gray-800">
-                        "{{ $proj->misc }}"
-                    </p>
-                @endif
-            </div>
-                        </div>
+               {{-- Contenu riche du projet --}}
+                <div class="mt-6 prose prose-sm max-w-none">
+                    @if ($page->project && $page->project->content)
+                        {!! $page->project->content !!}
                     @endif
                 </div>
 
