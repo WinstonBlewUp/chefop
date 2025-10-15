@@ -11,7 +11,7 @@
     @include('components.navbar')
     
     <div class="container mx-auto py-8">
-        <h1 class="text-3xl font-bold text-center mb-8">{{ strtoupper($category->name) }}</h1>
+        <!-- <h1 class="text-3xl font-bold text-center mb-8">{{ strtoupper($category->name) }}</h1> -->
 
         @if($projects->count() > 0)
             {{-- Grille des projets de la catégorie --}}

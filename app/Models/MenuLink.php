@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MenuLink extends Model
 {
-    protected $fillable = ['page_id', 'category_id'];
+    protected $fillable = ['page_id', 'category_id', 'order'];
 
     public function page()
     {

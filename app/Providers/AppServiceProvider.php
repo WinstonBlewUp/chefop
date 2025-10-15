@@ -22,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         View::composer('*', function ($view) {
-            $menuLinks = MenuLink::with('page')->get();
+            $menuLinks = MenuLink::with(['page', 'category'])->orderBy('order')->get();
             
             // Exclure les catégories spéciales du menu
             $menuLinks = $menuLinks->filter(function ($link) {

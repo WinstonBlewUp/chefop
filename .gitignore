@@ -2,6 +2,7 @@
 /vendor
 /node_modules
 /public/storage
+/public/tinymce
 /storage/*.key
 .env
 .env.*
@@ -56,3 +57,9 @@ phpunit.xml
 *.sublime-project
 *.sublime-workspace
 CLAUDE.md
+
+# Security - Private keys
+*.pem
+*.key
+*.p12
+*.pfx

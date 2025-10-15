@@ -5,6 +5,7 @@ use App\Http\Controllers\Dashboard\PageController;
 use App\Http\Controllers\Dashboard\MenuController;
 use App\Http\Controllers\Dashboard\MediaController;
 use App\Http\Controllers\Dashboard\ProjectController;
+use App\Http\Controllers\Dashboard\CategoryController;
 use App\Models\MenuLink;
 use App\Models\Page;
 use App\Models\Category;
@@ -18,7 +19,7 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    $menu = MenuLink::with(['page', 'category'])->get();
+    $menu = MenuLink::with(['page', 'category'])->orderBy('order')->get();
     
     // Pages disponibles (pas déjà dans le menu)
     $availablePages = Page::where('published', true)
@@ -35,9 +36,11 @@ Route::get('/dashboard', function () {
         'total_pages' => Page::count(),
         'published_pages' => Page::where('published', true)->count(),
         'total_media' => \App\Models\Media::count(),
+        'total_categories' => Category::count(),
         'recent_projects' => \App\Models\Project::latest()->take(3)->get(),
         'recent_pages' => Page::latest()->take(3)->get(),
         'recent_media' => \App\Models\Media::latest()->take(6)->get(),
+        'recent_categories' => Category::withCount('projects')->latest()->take(3)->get(),
     ];
 
     return view('dashboard', compact('menu', 'availablePages', 'availableCategories', 'stats'));
@@ -52,7 +55,9 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'verified', 'admin'])->prefix('dashboard')->name('dashboard.')->group(function () {
     Route::resource('pages', PageController::class);
+    Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
     Route::post('/menu', [MenuController::class, 'store'])->name('menu.store');
+    Route::post('/menu/reorder', [MenuController::class, 'reorder'])->name('menu.reorder');
     Route::delete('/menu/{menuLink}', [MenuController::class, 'destroy'])->name('menu.destroy');
     Route::get('/media', [MediaController::class, 'index'])->name('media.index');
     Route::post('/media/upload', [MediaController::class, 'upload'])->name('media.upload');
