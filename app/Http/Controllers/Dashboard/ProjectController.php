@@ -63,7 +63,7 @@ class ProjectController extends Controller
             'content'           => 'nullable|string',
             'category_id'       => 'nullable|exists:categories,id',
             'is_selected_work'  => 'nullable|boolean',
-            'media'             => 'array',
+            'media'             => 'nullable|array',
             'media.*'           => 'exists:media,id',
         ]);
 
@@ -166,7 +166,7 @@ class ProjectController extends Controller
             'content'           => 'nullable|string',
             'category_id'       => 'nullable|exists:categories,id',
             'is_selected_work'  => 'nullable|boolean',
-            'media'             => 'array',
+            'media'             => 'nullable|array',
             'media.*'           => 'exists:media,id',
         ]);
 
