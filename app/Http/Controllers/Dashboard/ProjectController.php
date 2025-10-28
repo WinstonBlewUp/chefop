@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Media;
+use App\Models\Folder;
 use App\Models\Category;
 use App\Models\Page;
 use Illuminate\Http\Request;
@@ -17,21 +18,40 @@ class ProjectController extends Controller
         $projects = Project::latest()->get();
         $stillsProject = Project::where('slug', 'stills')->where('is_locked', true)->first();
         $regularProjects = Project::where('is_locked', false)->orWhereNull('is_locked')->latest()->get();
-        $media = Media::latest()->get();
+
+        // Charger uniquement les médias sans dossier
+        $media = Media::whereNull('folder_id')->latest()->get();
+
+        // Charger les dossiers racine avec leurs médias
+        $folders = Folder::whereNull('parent_id')
+            ->withCount('media')
+            ->with('media')
+            ->orderBy('order')
+            ->get();
+
         $categories = Category::all();
 
-        return view('dashboard.projects.index', compact('media', 'categories', 'projects', 'stillsProject', 'regularProjects'));
+        return view('dashboard.projects.index', compact('media', 'folders', 'categories', 'projects', 'stillsProject', 'regularProjects'));
     }
 
     public function create()
     {
-        $media = Media::latest()->get();
+        // Charger uniquement les médias sans dossier
+        $media = Media::whereNull('folder_id')->latest()->get();
+
+        // Charger les dossiers racine avec leurs médias
+        $folders = Folder::whereNull('parent_id')
+            ->withCount('media')
+            ->with('media')
+            ->orderBy('order')
+            ->get();
+
         $categories = Category::all();
         $projects = Project::latest()->get();
         $stillsProject = Project::where('slug', 'stills')->where('is_locked', true)->first();
         $regularProjects = Project::where('is_locked', false)->orWhereNull('is_locked')->latest()->get();
 
-        return view('dashboard.projects.create', compact('media', 'categories', 'projects', 'stillsProject', 'regularProjects'));
+        return view('dashboard.projects.create', compact('media', 'folders', 'categories', 'projects', 'stillsProject', 'regularProjects'));
     }
 
     public function store(Request $request)
@@ -121,11 +141,20 @@ class ProjectController extends Controller
 
     public function edit(Project $project)
     {
-        $media = Media::latest()->get();
+        // Charger uniquement les médias sans dossier
+        $media = Media::whereNull('folder_id')->latest()->get();
+
+        // Charger les dossiers racine avec leurs médias
+        $folders = Folder::whereNull('parent_id')
+            ->withCount('media')
+            ->with('media')
+            ->orderBy('order')
+            ->get();
+
         $categories = Category::all();
         $attachedMedia = $project->media()->pluck('media.id')->toArray();
 
-        return view('dashboard.projects.edit', compact('project', 'media', 'attachedMedia', 'categories'));
+        return view('dashboard.projects.edit', compact('project', 'media', 'folders', 'attachedMedia', 'categories'));
     }
 
     public function update(Request $request, Project $project)
