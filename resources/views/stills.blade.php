@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Stills</title>
-    @vite('resources/css/app.css')
+    @vite(['resources/css/app.css', 'resources/js/public.js'])
 </head>
 <body>
     @include('components.navbar')

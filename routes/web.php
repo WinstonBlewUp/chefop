@@ -84,7 +84,7 @@ Route::get('/categories/{slug}', function (string $slug) {
 })->name('categories.show');
 
 Route::get('/stills', function () {
-    $stillsProject = Project::where('slug', 'stills')->where('is_locked', true)->with(['media', 'category'])->first();
+    $stillsProject = Project::where('slug', 'stills')->where('is_locked', true)->with(['media.projects', 'category'])->first();
 
     return view('stills', compact('stillsProject'));
 });
