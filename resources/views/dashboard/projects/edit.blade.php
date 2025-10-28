@@ -75,6 +75,102 @@
                     <div class="mb-8">
                         <label class="block font-medium text-sm text-gray-700 mb-4">Médias associés</label>
 
+                        {{-- Section Dossiers --}}
+                        @if($folders->count() > 0)
+                            <div class="border border-gray-200 rounded-lg p-4 bg-blue-50 mb-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center">
+                                        <svg class="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                                        </svg>
+                                        <h3 class="font-medium text-gray-900">Dossiers</h3>
+                                    </div>
+                                    <p class="text-sm text-gray-600">{{ $folders->count() }} dossier(s)</p>
+                                </div>
+
+                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                    @foreach($folders as $folder)
+                                        <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+                                            {{-- Dossier clickable pour toggle --}}
+                                            <div class="p-3 border-b border-gray-100">
+                                                <div class="flex items-center justify-between">
+                                                    <div class="flex items-center flex-1 cursor-pointer" onclick="toggleFolderMedias({{ $folder->id }})">
+                                                        <svg class="w-8 h-8 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                                            <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                                                        </svg>
+                                                        <div>
+                                                            <p class="text-sm font-medium text-gray-900 truncate">{{ $folder->name }}</p>
+                                                            <p class="text-xs text-gray-500">{{ $folder->media_count }} fichier(s)</p>
+                                                        </div>
+                                                    </div>
+                                                    {{-- Checkbox pour sélectionner tous les médias du dossier --}}
+                                                    <label class="ml-2" title="Tout sélectionner" onclick="event.stopPropagation()">
+                                                        <input type="checkbox"
+                                                               class="folder-select-all w-4 h-4 text-green-600 rounded"
+                                                               data-folder-id="{{ $folder->id }}"
+                                                               onchange="toggleAllFolderMedia({{ $folder->id }})">
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            {{-- Médias du dossier (cachés par défaut) --}}
+                                            <div id="folder-medias-{{ $folder->id }}" class="hidden p-2 bg-gray-50">
+                                                @if($folder->media->count() > 0)
+                                                    <div class="space-y-2">
+                                                        @foreach($folder->media as $item)
+                                                            <label class="relative cursor-pointer group block">
+                                                                <input type="checkbox"
+                                                                       name="media[]"
+                                                                       value="{{ $item->id }}"
+                                                                       class="peer hidden folder-media-{{ $folder->id }}"
+                                                                       {{ in_array($item->id, $attachedMedia) ? 'checked' : '' }}
+                                                                       onchange="updateFolderSelectAll({{ $folder->id }})">
+
+                                                                @if(Str::startsWith($item->type, 'image/'))
+                                                                    <img src="{{ asset('storage/' . $item->file_path) }}"
+                                                                         alt="media"
+                                                                         class="w-full h-20 object-cover rounded border-2 border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition-all hover:shadow-md">
+                                                                @elseif(Str::startsWith($item->type, 'video/'))
+                                                                    <video class="w-full h-20 object-cover rounded border-2 border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition-all hover:shadow-md" muted>
+                                                                        <source src="{{ asset('storage/' . $item->file_path) }}" type="{{ $item->type }}">
+                                                                    </video>
+                                                                @endif
+
+                                                                <div class="absolute inset-0 rounded bg-indigo-500/20 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></div>
+
+                                                                {{-- Checkmark --}}
+                                                                <div class="absolute top-1 left-1 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                                                    <div class="p-1 rounded-full bg-indigo-500">
+                                                                        <svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                                                        </svg>
+                                                                    </div>
+                                                                </div>
+                                                            </label>
+                                                        @endforeach
+                                                    </div>
+                                                @else
+                                                    <p class="text-xs text-gray-500 text-center py-2">Aucun média</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Section Médias non organisés --}}
+                        <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-orange-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <h3 class="font-medium text-gray-900">Médias non organisés</h3>
+                                </div>
+                                <p class="text-sm text-gray-600">{{ $media->count() }} média(s)</p>
+                            </div>
+
                         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                             @foreach ($media as $item)
                                 <label class="relative cursor-pointer group">
@@ -94,6 +190,7 @@
                                 </label>
                             @endforeach
                         </div>
+                        </div>
                     </div>
 
                     <div class="flex justify-end">
@@ -108,6 +205,56 @@
         </div>
     </div>
 </div>
+
+<script>
+    // ============ Gestion des dossiers dans la sélection de médias ============
+
+    function toggleFolderMedias(folderId) {
+        const mediaContainer = document.getElementById(`folder-medias-${folderId}`);
+        if (mediaContainer.classList.contains('hidden')) {
+            mediaContainer.classList.remove('hidden');
+        } else {
+            mediaContainer.classList.add('hidden');
+        }
+    }
+
+    function toggleAllFolderMedia(folderId) {
+        const selectAllCheckbox = document.querySelector(`.folder-select-all[data-folder-id="${folderId}"]`);
+        const mediaCheckboxes = document.querySelectorAll(`.folder-media-${folderId}`);
+
+        mediaCheckboxes.forEach(checkbox => {
+            checkbox.checked = selectAllCheckbox.checked;
+        });
+    }
+
+    function updateFolderSelectAll(folderId) {
+        const selectAllCheckbox = document.querySelector(`.folder-select-all[data-folder-id="${folderId}"]`);
+        const mediaCheckboxes = document.querySelectorAll(`.folder-media-${folderId}`);
+        const checkedCount = document.querySelectorAll(`.folder-media-${folderId}:checked`).length;
+
+        if (checkedCount === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checkedCount === mediaCheckboxes.length) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = true;
+        }
+    }
+
+    // Initialiser l'état indeterminate au chargement de la page
+    document.addEventListener('DOMContentLoaded', function() {
+        const folders = document.querySelectorAll('.folder-select-all');
+        folders.forEach(checkbox => {
+            const folderId = checkbox.getAttribute('data-folder-id');
+            updateFolderSelectAll(folderId);
+        });
+    });
+
+    // ============ Fin gestion des dossiers ============
+</script>
 
 {{-- TinyMCE Editor - Initialisé via resources/js/tinymce-init.js --}}
 @endsection

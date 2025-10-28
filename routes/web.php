@@ -6,6 +6,7 @@ use App\Http\Controllers\Dashboard\MenuController;
 use App\Http\Controllers\Dashboard\MediaController;
 use App\Http\Controllers\Dashboard\ProjectController;
 use App\Http\Controllers\Dashboard\CategoryController;
+use App\Http\Controllers\Dashboard\FolderController;
 use App\Models\MenuLink;
 use App\Models\Page;
 use App\Models\Category;
@@ -61,6 +62,10 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('dashboard')->name('das
     Route::delete('/menu/{menuLink}', [MenuController::class, 'destroy'])->name('menu.destroy');
     Route::get('/media', [MediaController::class, 'index'])->name('media.index');
     Route::post('/media/upload', [MediaController::class, 'upload'])->name('media.upload');
+    Route::post('/media/{media}/move', [MediaController::class, 'move'])->name('media.move');
+    Route::post('/folders', [FolderController::class, 'store'])->name('folders.store');
+    Route::put('/folders/{folder}', [FolderController::class, 'update'])->name('folders.update');
+    Route::delete('/folders/{folder}', [FolderController::class, 'destroy'])->name('folders.destroy');
     Route::resource('/projects', ProjectController::class);
     Route::post('/projects/{project}/publish-page', [ProjectController::class, 'publishPage'])->name('projects.publish-page');
     Route::post('/projects/store-without-category', [ProjectController::class, 'storeWithoutCategory'])->name('projects.store-without-category');

@@ -57,6 +57,125 @@
             </div>
         </div>
 
+        {{-- Section des dossiers --}}
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center">
+                        <div class="p-2 rounded-full bg-blue-100 mr-3">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-gray-900">Dossiers</h2>
+                            <p class="text-sm text-gray-600">Organisez vos médias par dossier</p>
+                        </div>
+                    </div>
+                    <button onclick="openCreateFolderModal()" class="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Nouveau dossier
+                    </button>
+                </div>
+
+                @if($currentFolder)
+                    {{-- Breadcrumb et retour --}}
+                    <div class="mb-4 flex items-center gap-2 text-sm">
+                        <a href="{{ route('dashboard.media.index') }}" class="text-orange-600 hover:text-orange-700">Racine</a>
+                        @php
+                            $path = [];
+                            $folder = $currentFolder;
+                            while ($folder) {
+                                array_unshift($path, $folder);
+                                $folder = $folder->parent;
+                            }
+                        @endphp
+                        @foreach($path as $crumb)
+                            <span class="text-gray-400">/</span>
+                            <a href="{{ route('dashboard.media.index', ['folder' => $crumb->id]) }}" class="text-orange-600 hover:text-orange-700">
+                                {{ $crumb->name }}
+                            </a>
+                        @endforeach
+                    </div>
+
+                    {{-- Bouton retour au parent --}}
+                    <a href="{{ $currentFolder->parent_id ? route('dashboard.media.index', ['folder' => $currentFolder->parent_id]) : route('dashboard.media.index') }}"
+                       class="inline-flex items-center gap-2 mb-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Dossier parent
+                    </a>
+                @endif
+
+                @if($folders->count() > 0)
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        @foreach($folders as $folder)
+                            <div class="relative group bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden"
+                                 data-folder-id="{{ $folder->id }}"
+                                 ondragover="handleFolderDragOver(event)"
+                                 ondragleave="handleFolderDragLeave(event)"
+                                 ondrop="handleDropOnFolder(event, {{ $folder->id }})">
+                                <div onclick="toggleFolderContent({{ $folder->id }})" class="block p-4 text-center cursor-pointer">
+                                    <svg class="w-12 h-12 mx-auto mb-2 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                                    </svg>
+                                    <p class="text-sm font-medium text-gray-900 truncate">{{ $folder->name }}</p>
+                                    <p class="text-xs text-gray-500">{{ $folder->media_count }} fichier(s)</p>
+                                </div>
+
+                                {{-- Actions --}}
+                                <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onclick="event.stopPropagation(); openEditFolderModal({{ $folder->id }}, '{{ $folder->name }}')" class="p-1 bg-white rounded shadow hover:bg-gray-100">
+                                        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                        </svg>
+                                    </button>
+                                    <button onclick="event.stopPropagation(); deleteFolder({{ $folder->id }}, '{{ $folder->name }}')" class="p-1 bg-white rounded shadow hover:bg-red-100">
+                                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                {{-- Contenu du dossier (caché par défaut) --}}
+                                <div id="folder-content-{{ $folder->id }}" class="hidden border-t border-gray-200 bg-gray-50 p-3">
+                                    @if($folder->media->count() > 0)
+                                        <div class="grid grid-cols-2 gap-2">
+                                            @foreach($folder->media as $item)
+                                                <div class="relative cursor-pointer group/media bg-white rounded border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden"
+                                                     onclick="openMediaModal('{{ asset('storage/' . $item->file_path) }}', '{{ $item->type }}', '{{ pathinfo($item->file_path, PATHINFO_FILENAME) }}')">
+                                                    @if(Str::startsWith($item->type, 'image/'))
+                                                        <img src="{{ asset('storage/' . $item->file_path) }}"
+                                                             alt="media"
+                                                             class="w-full h-20 object-cover group-hover/media:scale-105 transition-transform duration-300">
+                                                    @elseif(Str::startsWith($item->type, 'video/'))
+                                                        <div class="relative w-full h-20 bg-gray-900">
+                                                            <video class="w-full h-full object-cover" muted preload="metadata">
+                                                                <source src="{{ asset('storage/' . $item->file_path) }}#t=1" type="{{ $item->type }}">
+                                                            </video>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <p class="text-xs text-gray-500 text-center">Aucun média</p>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center text-gray-500 py-8">
+                        <p class="text-sm">Aucun dossier. Créez-en un pour organiser vos médias.</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+
         {{-- Galerie des médias existants --}}
         @if($media->count() > 0)
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -68,14 +187,18 @@
                             </svg>
                         </div>
                         <div>
-                            <h2 class="text-lg font-bold text-gray-900">Médias existants</h2>
-                            <p class="text-sm text-gray-600">{{ $media->count() }} média(s) au total</p>
+                            <h2 class="text-lg font-bold text-gray-900">Médias non organisés</h2>
+                            <p class="text-sm text-gray-600">{{ $media->count() }} média(s) sans dossier</p>
                         </div>
                     </div>
                     
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                         @foreach($media as $item)
-                            <div class="relative cursor-pointer group bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden"
+                            <div class="relative cursor-move group bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden"
+                                 draggable="true"
+                                 data-media-id="{{ $item->id }}"
+                                 ondragstart="handleMediaDragStart(event, {{ $item->id }})"
+                                 ondragend="handleMediaDragEnd(event)"
                                  onclick="openMediaModal('{{ asset('storage/' . $item->file_path) }}', '{{ $item->type }}', '{{ pathinfo($item->file_path, PATHINFO_FILENAME) }}')">
                                 
                                 @if(Str::startsWith($item->type, 'image/'))
@@ -438,6 +561,190 @@
             closeMediaModal();
         }
     });
+
+    // ============ Gestion du drag & drop ============
+
+    let draggedMediaId = null;
+
+    function handleMediaDragStart(event, mediaId) {
+        draggedMediaId = mediaId;
+        event.currentTarget.style.opacity = '0.5';
+        event.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleMediaDragEnd(event) {
+        event.currentTarget.style.opacity = '1';
+    }
+
+    function handleFolderDragOver(event) {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+        // Ajouter un indicateur visuel
+        event.currentTarget.classList.add('border-orange-500', 'border-2', 'bg-orange-50');
+    }
+
+    function handleFolderDragLeave(event) {
+        event.currentTarget.classList.remove('border-orange-500', 'border-2', 'bg-orange-50');
+    }
+
+    function handleDropOnFolder(event, folderId) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.currentTarget.classList.remove('border-orange-500', 'border-2', 'bg-orange-50');
+
+        if (!draggedMediaId) return;
+
+        // Déplacer le média vers le dossier
+        fetch(`/dashboard/media/${draggedMediaId}/move`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                folder_id: folderId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSuccess(data.message);
+                // Retirer le média de la liste
+                const mediaElement = document.querySelector(`[data-media-id="${draggedMediaId}"]`);
+                if (mediaElement) {
+                    mediaElement.style.transition = 'opacity 0.3s, transform 0.3s';
+                    mediaElement.style.opacity = '0';
+                    mediaElement.style.transform = 'scale(0.8)';
+                    setTimeout(() => {
+                        mediaElement.remove();
+                        // Mettre à jour le compteur
+                        updateMediaCount(-1);
+                        // Recharger pour voir le média dans le dossier
+                        setTimeout(() => location.reload(), 500);
+                    }, 300);
+                }
+            } else {
+                showError(data.message || 'Erreur lors du déplacement');
+            }
+        })
+        .catch(error => {
+            showError('Erreur lors du déplacement du média');
+            console.error(error);
+        })
+        .finally(() => {
+            draggedMediaId = null;
+        });
+    }
+
+    function updateMediaCount(delta) {
+        const counterElement = document.querySelector('.text-sm.text-gray-600');
+        if (counterElement && counterElement.textContent.includes('média(s) sans dossier')) {
+            const currentCount = parseInt(counterElement.textContent.match(/\d+/)[0]);
+            const newCount = currentCount + delta;
+            counterElement.textContent = `${newCount} média(s) sans dossier`;
+        }
+    }
+
+    function toggleFolderContent(folderId) {
+        const content = document.getElementById(`folder-content-${folderId}`);
+        if (content.classList.contains('hidden')) {
+            content.classList.remove('hidden');
+        } else {
+            content.classList.add('hidden');
+        }
+    }
+
+    // ============ Fin gestion du drag & drop ============
+
+    // ============ Gestion des dossiers ============
+
+    function openCreateFolderModal() {
+        const folderName = prompt('Nom du nouveau dossier:');
+        if (!folderName || !folderName.trim()) return;
+
+        fetch('{{ route("dashboard.folders.store") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                name: folderName.trim(),
+                parent_id: {{ $currentFolder ? $currentFolder->id : 'null' }}
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSuccess(data.message);
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showError(data.message || 'Erreur lors de la création du dossier');
+            }
+        })
+        .catch(error => {
+            showError('Erreur lors de la création du dossier');
+            console.error(error);
+        });
+    }
+
+    function openEditFolderModal(folderId, currentName) {
+        const newName = prompt('Nouveau nom du dossier:', currentName);
+        if (!newName || !newName.trim() || newName === currentName) return;
+
+        fetch(`/dashboard/folders/${folderId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                name: newName.trim()
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSuccess(data.message);
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showError(data.message || 'Erreur lors de la modification');
+            }
+        })
+        .catch(error => {
+            showError('Erreur lors de la modification du dossier');
+            console.error(error);
+        });
+    }
+
+    function deleteFolder(folderId, folderName) {
+        if (!confirm(`Supprimer le dossier "${folderName}" ?\n\nLes médias et sous-dossiers seront déplacés vers le dossier parent.`)) {
+            return;
+        }
+
+        fetch(`/dashboard/folders/${folderId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSuccess(data.message);
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showError(data.message || 'Erreur lors de la suppression');
+            }
+        })
+        .catch(error => {
+            showError('Erreur lors de la suppression du dossier');
+            console.error(error);
+        });
+    }
+
+    // ============ Fin gestion des dossiers ============
 
     // Fonction pour ajouter dynamiquement les nouveaux médias à la grille
     function addMediaToGrid(mediaList) {

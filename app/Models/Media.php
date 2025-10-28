@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Media extends Model
 {
-    protected $fillable = ['file_path', 'type', 'alt'];
+    protected $fillable = ['file_path', 'type', 'alt', 'folder_id'];
 
     public function getUrlAttribute(): string
     {
@@ -26,6 +26,12 @@ class Media extends Model
     public function projects()
     {
         return $this->belongsToMany(Project::class, 'media_project');
+    }
+
+    // Relation: dossier contenant ce média
+    public function folder()
+    {
+        return $this->belongsTo(Folder::class);
     }
 
 }

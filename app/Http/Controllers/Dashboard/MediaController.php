@@ -5,15 +5,31 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Media;
+use App\Models\Folder;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class MediaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $media = Media::latest()->get();
-        return view('dashboard.media.index', compact('media'));
+        $folderId = $request->query('folder');
+
+        // Charger le dossier actuel
+        $currentFolder = $folderId ? Folder::find($folderId) : null;
+
+        // Charger les sous-dossiers du dossier actuel avec leurs médias
+        $folders = Folder::where('parent_id', $folderId)
+            ->withCount('media')
+            ->with('media')
+            ->orderBy('order')
+            ->get();
+
+        // Charger uniquement les médias sans dossier (non organisés)
+        $media = Media::whereNull('folder_id')->latest()->get();
+
+        return view('dashboard.media.index', compact('media', 'folders', 'currentFolder'));
     }
 
     public function upload(Request $request)
@@ -59,8 +75,9 @@ class MediaController extends Controller
             ]);
 
             $file = $request->file('file');
-            $media = $this->processFile($file);
-            
+            $folderId = $request->input('folder_id');
+            $media = $this->processFile($file, $folderId);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Fichier uploadé avec succès !',
@@ -127,10 +144,11 @@ class MediaController extends Controller
         $results = [];
         $successCount = 0;
         $errors = [];
+        $folderId = $request->input('folder_id');
 
         foreach ($request->file('files') as $file) {
             try {
-                $media = $this->processFile($file);
+                $media = $this->processFile($file, $folderId);
                 $results[] = [
                     'id' => $media->id,
                     'file_path' => $media->file_path,
@@ -165,7 +183,7 @@ class MediaController extends Controller
         }
     }
 
-    private function processFile($file)
+    private function processFile($file, $folderId = null)
     {
         // Vérifications supplémentaires
         if (!$file->isValid()) {
@@ -176,12 +194,27 @@ class MediaController extends Controller
         $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $extension = $file->getClientOriginalExtension();
         $fileName = Str::slug($originalName) . '_' . time() . '_' . Str::random(8) . '.' . $extension;
-        
+
         $path = $file->storeAs('media', $fileName, 'public');
 
         return Media::create([
             'file_path' => $path,
             'type' => $file->getMimeType(),
+            'folder_id' => $folderId,
+        ]);
+    }
+
+    public function move(Request $request, Media $media)
+    {
+        $validated = $request->validate([
+            'folder_id' => 'nullable|exists:folders,id',
+        ]);
+
+        $media->update(['folder_id' => $validated['folder_id']]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Média déplacé avec succès!',
         ]);
     }
 }
