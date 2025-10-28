@@ -268,12 +268,16 @@ if ($page->project) {
                                 src="{{ asset('storage/' . $item['media']->file_path) }}"
                                 alt="media"
                                 class="h-32 w-full object-cover rounded-none"
+                                data-lightbox="{{ asset('storage/' . $item['media']->file_path) }}"
+                                data-lightbox-type="image"
                             />
                         @elseif (Str::startsWith($item['media']->type, 'video/'))
                             <video
                                 src="{{ asset('storage/' . $item['media']->file_path) }}"
                                 class="h-32 w-full object-cover rounded-none"
                                 controls
+                                data-lightbox="{{ asset('storage/' . $item['media']->file_path) }}"
+                                data-lightbox-type="video"
                             ></video>
                         @endif
                     </div>
@@ -299,12 +303,16 @@ if ($page->project) {
                                 src="{{ asset('storage/' . $item['media']->file_path) }}"
                                 alt="media"
                                 class="h-40 w-full object-cover rounded-none"
+                                data-lightbox="{{ asset('storage/' . $item['media']->file_path) }}"
+                                data-lightbox-type="image"
                             />
                         @elseif (Str::startsWith($item['media']->type, 'video/'))
                             <video
                                 src="{{ asset('storage/' . $item['media']->file_path) }}"
                                 class="h-40 w-full object-cover rounded-none"
                                 controls
+                                data-lightbox="{{ asset('storage/' . $item['media']->file_path) }}"
+                                data-lightbox-type="video"
                             ></video>
                         @endif
                     </div>
@@ -330,12 +338,16 @@ if ($page->project) {
                                 src="{{ asset('storage/' . $item['media']->file_path) }}"
                                 alt="media"
                                 class="h-48 w-full object-cover rounded-none"
+                                data-lightbox="{{ asset('storage/' . $item['media']->file_path) }}"
+                                data-lightbox-type="image"
                             />
                         @elseif (Str::startsWith($item['media']->type, 'video/'))
                             <video
                                 src="{{ asset('storage/' . $item['media']->file_path) }}"
                                 class="h-48 w-full object-cover rounded-none"
                                 controls
+                                data-lightbox="{{ asset('storage/' . $item['media']->file_path) }}"
+                                data-lightbox-type="video"
                             ></video>
                         @endif
                     </div>
