@@ -44,7 +44,6 @@
                         {!! $page->project->content !!}
                     @endif
                 </div>
-
         </div>
     </div>
 </div>

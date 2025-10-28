@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,6 +12,15 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // ✅ Corriger les timestamps invalides avant l'ALTER TABLE
+        DB::table('projects')
+            ->where('created_at', '0000-00-00 00:00:00')
+            ->update(['created_at' => now()]);
+
+        DB::table('projects')
+            ->where('updated_at', '0000-00-00 00:00:00')
+            ->update(['updated_at' => now()]);
+
         Schema::table('projects', function (Blueprint $table) {
             // Ajouter le champ content pour l'éditeur riche
             $table->longText('content')->nullable()->after('description');
