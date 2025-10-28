@@ -12,6 +12,7 @@ class Project extends Model
         'description',
         'content',
         'category_id',
+        'category_order',
         'is_selected_work',
         'is_locked',
     ];

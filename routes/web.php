@@ -57,6 +57,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'verified', 'admin'])->prefix('dashboard')->name('dashboard.')->group(function () {
     Route::resource('pages', PageController::class);
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
+    Route::post('/categories/{category}/reorder-projects', [CategoryController::class, 'reorderProjects'])->name('categories.reorder-projects');
     Route::post('/menu', [MenuController::class, 'store'])->name('menu.store');
     Route::post('/menu/reorder', [MenuController::class, 'reorder'])->name('menu.reorder');
     Route::delete('/menu/{menuLink}', [MenuController::class, 'destroy'])->name('menu.destroy');
@@ -75,10 +76,10 @@ Route::get('/pages/{slug}', [PageController::class, 'show'])->name('pages.show')
 
 Route::get('/categories/{slug}', function (string $slug) {
     $category = Category::where('name', $slug)->firstOrFail();
-    
-    // Récupérer tous les projets de cette catégorie avec leurs médias
-    $projects = $category->projects()->with('media')->get();
-    
+
+    // Récupérer tous les projets de cette catégorie avec leurs médias, triés par category_order
+    $projects = $category->projects()->with('media')->orderBy('category_order')->get();
+
     return view('categories.show', compact('category', 'projects'));
 })->name('categories.show');
 
