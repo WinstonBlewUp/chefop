@@ -24,6 +24,10 @@
                     <x-nav-link :href="route('dashboard.media.index')" :active="request()->routeIs('dashboard.media.*')">
                         {{ __('Médias') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('dashboard.contact.edit')" :active="request()->routeIs('dashboard.contact.*')">
+                        {{ __('Contact') }}
+                    </x-nav-link>
+
                 </div>
             </div>
 

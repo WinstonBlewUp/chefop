@@ -88,9 +88,21 @@ Route::get('/stills', function () {
     return view('stills', compact('stillsProject'));
 });
 
-Route::get('/contact', function () {
-    return view('pages.contact');
-});
+Route::get('/contact', [PageController::class, 'showContact'])->name('contact.show');
 
 require __DIR__.'/auth.php';
 
+Route::middleware(['auth', 'verified', 'admin'])->prefix('dashboard')->name('dashboard.')->group(function () {
+    Route::get('/contact', [\App\Http\Controllers\Dashboard\PageController::class, 'editContact'])->name('contact.edit');
+    Route::put('/contact', [\App\Http\Controllers\Dashboard\PageController::class, 'updateContact'])->name('contact.update');
+});
+
+// Route d’édition de la page Contact (admin)
+Route::get('/dashboard/contact', [App\Http\Controllers\Dashboard\PageController::class, 'editContact'])
+    ->name('dashboard.contact.edit')
+    ->middleware('auth');
+
+// Route de mise à jour de la page Contact (admin)
+Route::put('/dashboard/contact', [App\Http\Controllers\Dashboard\PageController::class, 'updateContact'])
+    ->name('dashboard.contact.update')
+    ->middleware('auth');
