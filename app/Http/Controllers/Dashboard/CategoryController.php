@@ -14,7 +14,12 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = Category::withCount('projects')->latest()->get();
+        $categories = Category::withCount('projects')
+            ->with(['projects' => function($query) {
+                $query->orderBy('category_order');
+            }])
+            ->latest()
+            ->get();
 
         return view('dashboard.categories.index', compact('categories'));
     }
@@ -67,5 +72,28 @@ class CategoryController extends Controller
         $category->delete();
 
         return redirect()->route('dashboard.categories.index')->with('success', 'Catégorie supprimée avec succès.');
+    }
+
+    /**
+     * Reorder projects within a category.
+     */
+    public function reorderProjects(Request $request, Category $category)
+    {
+        $validated = $request->validate([
+            'projects' => 'required|array',
+            'projects.*' => 'exists:projects,id',
+        ]);
+
+        // Mettre à jour l'ordre de chaque projet
+        foreach ($validated['projects'] as $index => $projectId) {
+            $category->projects()->where('id', $projectId)->update([
+                'category_order' => $index
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Ordre des projets mis à jour avec succès!'
+        ]);
     }
 }
