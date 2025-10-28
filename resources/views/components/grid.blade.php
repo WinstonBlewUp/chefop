@@ -261,6 +261,17 @@ if ($page->project) {
                 @foreach ($row as $item)
                     @php
                         $flexGrow = $item['ratio'] / $totalRatio;
+                        // Trouver un projet associé UNIQUEMENT si on est sur la page stills
+                        $relatedProject = null;
+                        $isStillsPage = $page->project && $page->project->slug === 'stills';
+
+                        if ($isStillsPage && $item['media']->projects->isNotEmpty()) {
+                            $relatedProject = $item['media']->projects->first(function($proj) use ($page) {
+                                return $proj->slug !== 'stills' && (!$page->project || $proj->id !== $page->project->id);
+                            }) ?: $item['media']->projects->first(function($proj) use ($page) {
+                                return !$page->project || $proj->id !== $page->project->id;
+                            });
+                        }
                     @endphp
                     <div class="relative shadow-sm" style="flex: {{ $flexGrow }};">
                         @if (Str::startsWith($item['media']->type, 'image/'))
@@ -270,6 +281,10 @@ if ($page->project) {
                                 class="h-32 w-full object-cover rounded-none"
                                 data-lightbox="{{ asset('storage/' . $item['media']->file_path) }}"
                                 data-lightbox-type="image"
+                                @if($relatedProject)
+                                    data-lightbox-project-title="{{ $relatedProject->title }}"
+                                    data-lightbox-project-url="{{ route('pages.show', $relatedProject->slug) }}"
+                                @endif
                             />
                         @elseif (Str::startsWith($item['media']->type, 'video/'))
                             <video
@@ -278,6 +293,10 @@ if ($page->project) {
                                 controls
                                 data-lightbox="{{ asset('storage/' . $item['media']->file_path) }}"
                                 data-lightbox-type="video"
+                                @if($relatedProject)
+                                    data-lightbox-project-title="{{ $relatedProject->title }}"
+                                    data-lightbox-project-url="{{ route('pages.show', $relatedProject->slug) }}"
+                                @endif
                             ></video>
                         @endif
                     </div>
@@ -296,6 +315,17 @@ if ($page->project) {
                 @foreach ($row as $item)
                     @php
                         $flexGrow = $item['ratio'] / $totalRatio;
+                        // Trouver un projet associé UNIQUEMENT si on est sur la page stills
+                        $relatedProject = null;
+                        $isStillsPage = $page->project && $page->project->slug === 'stills';
+
+                        if ($isStillsPage && $item['media']->projects->isNotEmpty()) {
+                            $relatedProject = $item['media']->projects->first(function($proj) use ($page) {
+                                return $proj->slug !== 'stills' && (!$page->project || $proj->id !== $page->project->id);
+                            }) ?: $item['media']->projects->first(function($proj) use ($page) {
+                                return !$page->project || $proj->id !== $page->project->id;
+                            });
+                        }
                     @endphp
                     <div class="relative shadow" style="flex: {{ $flexGrow }};">
                         @if (Str::startsWith($item['media']->type, 'image/'))
@@ -305,6 +335,10 @@ if ($page->project) {
                                 class="h-40 w-full object-cover rounded-none"
                                 data-lightbox="{{ asset('storage/' . $item['media']->file_path) }}"
                                 data-lightbox-type="image"
+                                @if($relatedProject)
+                                    data-lightbox-project-title="{{ $relatedProject->title }}"
+                                    data-lightbox-project-url="{{ route('pages.show', $relatedProject->slug) }}"
+                                @endif
                             />
                         @elseif (Str::startsWith($item['media']->type, 'video/'))
                             <video
@@ -313,6 +347,10 @@ if ($page->project) {
                                 controls
                                 data-lightbox="{{ asset('storage/' . $item['media']->file_path) }}"
                                 data-lightbox-type="video"
+                                @if($relatedProject)
+                                    data-lightbox-project-title="{{ $relatedProject->title }}"
+                                    data-lightbox-project-url="{{ route('pages.show', $relatedProject->slug) }}"
+                                @endif
                             ></video>
                         @endif
                     </div>
@@ -331,6 +369,17 @@ if ($page->project) {
                 @foreach ($row as $item)
                     @php
                         $flexGrow = $item['ratio'] / $totalRatio;
+                        // Trouver un projet associé UNIQUEMENT si on est sur la page stills
+                        $relatedProject = null;
+                        $isStillsPage = $page->project && $page->project->slug === 'stills';
+
+                        if ($isStillsPage && $item['media']->projects->isNotEmpty()) {
+                            $relatedProject = $item['media']->projects->first(function($proj) use ($page) {
+                                return $proj->slug !== 'stills' && (!$page->project || $proj->id !== $page->project->id);
+                            }) ?: $item['media']->projects->first(function($proj) use ($page) {
+                                return !$page->project || $proj->id !== $page->project->id;
+                            });
+                        }
                     @endphp
                     <div class="relative shadow" style="flex: {{ $flexGrow }};">
                         @if (Str::startsWith($item['media']->type, 'image/'))
@@ -340,6 +389,10 @@ if ($page->project) {
                                 class="h-48 w-full object-cover rounded-none"
                                 data-lightbox="{{ asset('storage/' . $item['media']->file_path) }}"
                                 data-lightbox-type="image"
+                                @if($relatedProject)
+                                    data-lightbox-project-title="{{ $relatedProject->title }}"
+                                    data-lightbox-project-url="{{ route('pages.show', $relatedProject->slug) }}"
+                                @endif
                             />
                         @elseif (Str::startsWith($item['media']->type, 'video/'))
                             <video
@@ -348,6 +401,10 @@ if ($page->project) {
                                 controls
                                 data-lightbox="{{ asset('storage/' . $item['media']->file_path) }}"
                                 data-lightbox-type="video"
+                                @if($relatedProject)
+                                    data-lightbox-project-title="{{ $relatedProject->title }}"
+                                    data-lightbox-project-url="{{ route('pages.show', $relatedProject->slug) }}"
+                                @endif
                             ></video>
                         @endif
                     </div>

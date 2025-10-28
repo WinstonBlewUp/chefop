@@ -36,6 +36,15 @@ class SimpleLightbox {
                 </div>
 
                 <div id="lightbox-counter" class="lightbox-counter"></div>
+
+                <a id="lightbox-project-link" class="lightbox-project-link" style="display: none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                    </svg>
+                    <span id="lightbox-project-title"></span>
+                </a>
             </div>
         `;
 
@@ -71,7 +80,9 @@ class SimpleLightbox {
         this.images = Array.from(mediaElements).map(el => ({
             src: el.dataset.lightbox,
             type: el.dataset.lightboxType || 'image',
-            alt: el.alt || ''
+            alt: el.alt || '',
+            projectTitle: el.dataset.lightboxProjectTitle || null,
+            projectUrl: el.dataset.lightboxProjectUrl || null
         }));
 
         // Ajouter les événements de clic
@@ -120,6 +131,8 @@ class SimpleLightbox {
         const counter = document.getElementById('lightbox-counter');
         const prevBtn = document.getElementById('lightbox-prev');
         const nextBtn = document.getElementById('lightbox-next');
+        const projectLink = document.getElementById('lightbox-project-link');
+        const projectTitle = document.getElementById('lightbox-project-title');
 
         // Mettre à jour le compteur
         counter.textContent = `${this.currentIndex + 1} / ${this.images.length}`;
@@ -131,6 +144,15 @@ class SimpleLightbox {
         } else {
             prevBtn.style.display = 'flex';
             nextBtn.style.display = 'flex';
+        }
+
+        // Afficher/masquer le lien vers le projet
+        if (current.projectUrl && current.projectTitle) {
+            projectLink.href = current.projectUrl;
+            projectTitle.textContent = current.projectTitle;
+            projectLink.style.display = 'flex';
+        } else {
+            projectLink.style.display = 'none';
         }
 
         // Afficher le contenu approprié
