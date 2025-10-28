@@ -30,27 +30,26 @@ class ProjectController extends Controller
         $projects = Project::latest()->get();
         $stillsProject = Project::where('slug', 'stills')->where('is_locked', true)->first();
         $regularProjects = Project::where('is_locked', false)->orWhereNull('is_locked')->latest()->get();
+
         return view('dashboard.projects.create', compact('media', 'categories', 'projects', 'stillsProject', 'regularProjects'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title'               => 'required|string|max:255',
-            'slug'                => 'nullable|string|unique:projects,slug|unique:pages,slug',
-            'description'         => 'nullable|string',
-            'content'             => 'nullable|string',
-            'category_id'         => 'nullable|exists:categories,id',
-            'is_selected_work'    => 'nullable|boolean',
-
-            // Médias
-            'media'               => 'array',
-            'media.*'             => 'exists:media,id',
+            'title'             => 'required|string|max:255',
+            'slug'              => 'nullable|string|unique:projects,slug|unique:pages,slug',
+            'description'       => 'nullable|string',
+            'content'           => 'nullable|string',
+            'category_id'       => 'nullable|exists:categories,id',
+            'is_selected_work'  => 'nullable|boolean',
+            'media'             => 'array',
+            'media.*'           => 'exists:media,id',
         ]);
 
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
 
-        // Si aucune catégorie n'a été sélectionnée, on renvoie toutes les données au front (modale)
+        // Redirection si aucune catégorie
         if (empty($validated['category_id'])) {
             return redirect()->route('dashboard.projects.create')->with([
                 'show_category_modal' => true,
@@ -59,25 +58,26 @@ class ProjectController extends Controller
         }
 
         $project = Project::create([
-            'title'              => $validated['title'],
-            'slug'               => $validated['slug'],
-            'description'        => $validated['description'] ?? null,
-            'content'            => $validated['content'] ?? null,
-            'category_id'        => $validated['category_id'] ?? null,
-            'is_selected_work'   => $request->boolean('is_selected_work'),
+            'title'             => $validated['title'],
+            'slug'              => $validated['slug'],
+            'description'       => $validated['description'] ?? null,
+            'content'           => $validated['content'] ?? null,
+            'category_id'       => $validated['category_id'] ?? null,
+            'is_selected_work'  => $request->boolean('is_selected_work'),
         ]);
 
+        // Attacher les médias si présents
         if (!empty($validated['media'])) {
-            $project->media()->attach($validated['media']);
+            $project->media()->sync($validated['media']);
         }
 
-        // Créer automatiquement une page associée au projet
+        // Créer la page associée
         Page::create([
             'title'      => $validated['title'],
             'slug'       => $validated['slug'],
             'content'    => $validated['content'] ?? '',
             'template'   => 'default',
-            'published'  => false, // Par défaut non publié
+            'published'  => false,
             'project_id' => $project->id,
         ]);
 
@@ -89,23 +89,21 @@ class ProjectController extends Controller
 
     public function storeWithoutCategory(Request $request)
     {
-        // Données renvoyées par la modale (issues du validated précédent)
         $formData = $request->input('form_data', []);
 
         $project = Project::create([
-            'title'              => $formData['title'],
-            'slug'               => $formData['slug'],
-            'description'        => $formData['description'] ?? null,
-            'content'            => $formData['content'] ?? null,
-            'category_id'        => null,
-            'is_selected_work'   => !empty($formData['is_selected_work']),
+            'title'             => $formData['title'],
+            'slug'              => $formData['slug'],
+            'description'       => $formData['description'] ?? null,
+            'content'           => $formData['content'] ?? null,
+            'category_id'       => null,
+            'is_selected_work'  => !empty($formData['is_selected_work']),
         ]);
 
         if (!empty($formData['media'])) {
-            $project->media()->attach($formData['media']);
+            $project->media()->sync($formData['media']);
         }
 
-        // Créer automatiquement une page associée au projet
         Page::create([
             'title'      => $formData['title'],
             'slug'       => $formData['slug'],
@@ -126,39 +124,40 @@ class ProjectController extends Controller
         $media = Media::latest()->get();
         $categories = Category::all();
         $attachedMedia = $project->media()->pluck('media.id')->toArray();
+
         return view('dashboard.projects.edit', compact('project', 'media', 'attachedMedia', 'categories'));
     }
 
     public function update(Request $request, Project $project)
     {
         $validated = $request->validate([
-            'title'               => 'required|string|max:255',
-            'slug'                => 'nullable|string|unique:projects,slug,' . $project->id . '|unique:pages,slug,' . optional($project->pages()->first())->id,
-            'description'         => 'nullable|string',
-            'content'             => 'nullable|string',
-            'category_id'         => 'nullable|exists:categories,id',
-            'is_selected_work'    => 'nullable|boolean',
-
-            'media'               => 'array',
-            'media.*'             => 'exists:media,id',
+            'title'             => 'required|string|max:255',
+            'slug'              => 'nullable|string|unique:projects,slug,' . $project->id . '|unique:pages,slug,' . optional($project->pages()->first())->id,
+            'description'       => 'nullable|string',
+            'content'           => 'nullable|string',
+            'category_id'       => 'nullable|exists:categories,id',
+            'is_selected_work'  => 'nullable|boolean',
+            'media'             => 'array',
+            'media.*'           => 'exists:media,id',
         ]);
 
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
 
         $project->update([
-            'title'              => $validated['title'],
-            'slug'               => $validated['slug'],
-            'description'        => $validated['description'] ?? null,
-            'content'            => $validated['content'] ?? null,
-            'category_id'        => $validated['category_id'] ?? null,
-            'is_selected_work'   => $request->boolean('is_selected_work'),
+            'title'             => $validated['title'],
+            'slug'              => $validated['slug'],
+            'description'       => $validated['description'] ?? null,
+            'content'           => $validated['content'] ?? null,
+            'category_id'       => $validated['category_id'] ?? null,
+            'is_selected_work'  => $request->boolean('is_selected_work'),
         ]);
 
+        // Synchroniser les médias
         $project->media()->sync($validated['media'] ?? []);
 
-        // Mettre à jour la page associée si elle existe
-        if ($associatedPage = $project->pages()->first()) {
-            $associatedPage->update([
+        // Mise à jour de la page associée
+        if ($page = $project->pages()->first()) {
+            $page->update([
                 'title'   => $validated['title'],
                 'slug'    => $validated['slug'],
                 'content' => $validated['content'] ?? '',
@@ -170,23 +169,19 @@ class ProjectController extends Controller
 
     public function destroy(Project $project)
     {
-        // Empêcher la suppression des projets verrouillés
         if ($project->is_locked) {
             return redirect()->route('dashboard')->with('error', 'Ce projet ne peut pas être supprimé.');
         }
 
-        // Supprimer les pages associées
         $project->pages()->delete();
-
         $project->delete();
+
         return redirect()->route('dashboard')->with('success', 'Projet et pages associées supprimés.');
     }
 
     public function publishPage(Project $project)
     {
-        $page = $project->pages()->first();
-
-        if ($page) {
+        if ($page = $project->pages()->first()) {
             $page->update(['published' => true]);
             return response()->json(['success' => true, 'message' => 'Page publiée avec succès.']);
         }

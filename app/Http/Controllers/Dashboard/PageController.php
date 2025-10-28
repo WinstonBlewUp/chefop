@@ -9,10 +9,10 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
-use Inertia\Inertia;
 
 class PageController extends Controller
 {
+    // Liste des pages
     public function index()
     {
         $pages = Page::with(['project', 'category'])->latest()->get();
@@ -22,6 +22,7 @@ class PageController extends Controller
         return view('dashboard.pages.index', compact('pages', 'projects', 'categories'));
     }
 
+    // Création d'une page
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -32,8 +33,6 @@ class PageController extends Controller
             'published' => 'boolean',
             'category_id' => 'nullable|exists:categories,id',
         ]);
-
-        
 
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
         $validated['project_id'] = $validated['project'] ?? null;
@@ -50,6 +49,7 @@ class PageController extends Controller
         return redirect()->route('dashboard.pages.index')->with('success', 'Page créée avec succès.');
     }
 
+    // Mise à jour d'une page
     public function update(Request $request, Page $page)
     {
         $validated = $request->validate([
@@ -70,6 +70,7 @@ class PageController extends Controller
         return redirect()->route('dashboard.pages.index')->with('success', 'Page mise à jour avec succès.');
     }
 
+    // Supprimer une page
     public function destroy(Page $page)
     {
         $page->delete();
@@ -77,6 +78,7 @@ class PageController extends Controller
         return redirect()->route('dashboard.pages.index')->with('success', 'Page supprimée avec succès.');
     }
 
+    // Affichage d'une page côté front
     public function show(string $slug)
     {
         $page = Page::with('project.media', 'project.category')
@@ -84,7 +86,6 @@ class PageController extends Controller
                     ->where('published', true)
                     ->firstOrFail();
 
-        // Récupérer les autres projets de la même catégorie pour la navigation
         $categoryProjects = collect();
         if ($page->project && $page->project->category) {
             $categoryProjects = $page->project->category->projects()
@@ -97,5 +98,40 @@ class PageController extends Controller
         }
 
         return view('pages.show', compact('page', 'categoryProjects'));
+    }    
+
+    // EDIT Contact page (dashboard)
+    public function editContact()
+    {
+        $page = Page::firstOrCreate(
+            ['slug' => 'contact'],
+            ['title' => 'Contact', 'content' => '']
+        );
+
+        return view('dashboard.contact.edit', compact('page'));
     }
+
+    // UPDATE Contact page (dashboard)
+    public function updateContact(Request $request)
+    {
+        $page = Page::where('slug', 'contact')->firstOrFail();
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'nullable|string',
+        ]);
+
+        $page->update($validated);
+
+        return redirect()->route('dashboard.contact.edit')->with('success', 'Page Contact mise à jour avec succès.');
+    }
+
+    // AFFICHAGE PUBLIC DE LA PAGE CONTACT
+    public function showContact()
+    {
+        $page = Page::where('slug', 'contact')->firstOrFail();
+
+        return view('pages.contact', compact('page'));
+    }
+
 }
