@@ -9,6 +9,8 @@ use App\Models\Folder;
 use App\Models\Category;
 use App\Models\Page;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 
 class ProjectController extends Controller
@@ -32,7 +34,8 @@ class ProjectController extends Controller
         $categories = Category::all();
 
         return view('dashboard.projects.index', compact('media', 'folders', 'categories', 'projects', 'stillsProject', 'regularProjects'));
-    }
+    }   
+
 
     public function create()
     {
@@ -64,10 +67,25 @@ class ProjectController extends Controller
             'category_id'       => 'nullable|exists:categories,id',
             'is_selected_work'  => 'nullable|boolean',
             'media'             => 'nullable|array',
-            'media.*'           => 'exists:media,id',
+            'media.*'           => 'exists:media,id',      
+            'thumbnail' => ['nullable','image','max:4096'],
+            'thumbnail_media_id' => ['nullable', \Illuminate\Validation\Rule::exists('media','id')],
         ]);
 
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
+        
+        $thumbnail_path = null;
+        $thumbnail_media_id = null;
+
+        // Décision miniature (upload prioritaire)
+        $thumbnail_path = null;
+        $thumbnail_media_id = null;
+
+        if ($request->hasFile('thumbnail')) {
+            $thumbnail_path = $request->file('thumbnail')->store('projects/thumbnails', 'public');
+        } elseif ($request->filled('thumbnail_media_id')) {
+            $thumbnail_media_id = (int) $request->input('thumbnail_media_id');
+        }
 
         // Redirection si aucune catégorie
         if (empty($validated['category_id'])) {
@@ -77,6 +95,16 @@ class ProjectController extends Controller
             ]);
         }
 
+        $thumbnail_path = null;
+        $thumbnail_media_id = null;
+
+        if ($request->hasFile('thumbnail')) {
+            $thumbnail_path = $request->file('thumbnail')->store('projects/thumbnails', 'public');
+        } elseif ($request->filled('thumbnail_media_id')) {
+            $thumbnail_media_id = (int) $request->input('thumbnail_media_id');
+        }
+
+
         $project = Project::create([
             'title'             => $validated['title'],
             'slug'              => $validated['slug'],
@@ -84,12 +112,13 @@ class ProjectController extends Controller
             'content'           => $validated['content'] ?? null,
             'category_id'       => $validated['category_id'] ?? null,
             'is_selected_work'  => $request->boolean('is_selected_work'),
+            'thumbnail_path'     => $thumbnail_path,
+            'thumbnail_media_id' => $thumbnail_media_id,
         ]);
 
-        // Attacher les médias si présents
-        if (!empty($validated['media'])) {
-            $project->media()->sync($validated['media']);
-        }
+        // Lier médias de galerie (si tu en as)
+        $project->media()->sync($validated['media'] ?? []);
+        return redirect()->route('dashboard')->with('success', 'Projet créé.');
 
         // Créer la page associée
         Page::create([
@@ -168,9 +197,42 @@ class ProjectController extends Controller
             'is_selected_work'  => 'nullable|boolean',
             'media'             => 'nullable|array',
             'media.*'           => 'exists:media,id',
+            'thumbnail' => ['nullable','image','max:4096'],
+            'thumbnail_media_id' => ['nullable', \Illuminate\Validation\Rule::exists('media','id')],
+            'remove_thumbnail' => ['nullable','boolean'],
         ]);
 
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
+        
+        
+        // Suppression explicite
+        if ($request->boolean('remove_thumbnail')) {
+            if ($project->thumbnail_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($project->thumbnail_path)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($project->thumbnail_path);
+            }
+            $project->thumbnail_path = null;
+            $project->thumbnail_media_id = null;
+        }
+
+        // Remplacement (upload prioritaire)
+        if ($request->hasFile('thumbnail')) {
+            if ($project->thumbnail_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($project->thumbnail_path)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($project->thumbnail_path);
+            }
+            $project->thumbnail_path = $request->file('thumbnail')->store('projects/thumbnails', 'public');
+            $project->thumbnail_media_id = null;
+        } elseif ($request->filled('thumbnail_media_id')) {
+            if ($project->thumbnail_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($project->thumbnail_path)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($project->thumbnail_path);
+            }
+            $project->thumbnail_media_id = (int) $request->input('thumbnail_media_id');
+            $project->thumbnail_path = null;
+        }
+
+        $project->save();
+
+         
+
 
         $project->update([
             'title'             => $validated['title'],
@@ -192,6 +254,8 @@ class ProjectController extends Controller
                 'content' => $validated['content'] ?? '',
             ]);
         }
+
+        
 
         return redirect()->route('dashboard')->with('success', 'Projet et page associée mis à jour.');
     }

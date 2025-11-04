@@ -71,6 +71,17 @@
                         <textarea id="content" name="content" class="w-full border-gray-300 rounded-lg shadow-sm">{{ old('content', $project->content) }}</textarea>
                     </div>
 
+                    @if($project->thumbnail_url ?? false)
+                    <div class="flex items-center gap-3 mb-2">
+                        <img src="{{ $project->thumbnail_url }}" class="h-20 w-20 rounded object-cover border">
+                        <label class="inline-flex items-center gap-2">
+                            <input type="checkbox" name="remove_thumbnail" value="1">
+                            <span>Supprimer la miniature</span>
+                        </label>
+                    </div>
+                    @endif        
+
+
                     {{-- Galerie médias --}}
                     <div class="mb-8">
                         <label class="block font-medium text-sm text-gray-700 mb-4">Médias associés</label>

@@ -19,7 +19,7 @@
                     </div>
                 </div>
 
-                <form action="{{ route('dashboard.projects.store') }}" method="POST" class="space-y-6">
+                <form action="{{ route('dashboard.projects.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                     @csrf
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -75,15 +75,33 @@
                         <textarea id="content" name="content" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-200 focus:border-green-400"></textarea>
                     </div>
 
+                    {{-- Bloc Miniature --}}
+                    <div class="space-y-3">
+                        <label class="font-semibold">Miniature</label>
+
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm text-gray-600 mb-2">Uploader une image</p>
+                                <input type="file" name="thumbnail" accept="image/*" class="block w-full">
+                                <p class="text-xs text-gray-500 mt-1">PNG/JPG, max 4 Mo.</p>
+                            </div>
+
+                            <div>
+                                <p class="text-sm text-gray-600 mb-2">…ou choisir dans la médiathèque</p>
+                                <select name="thumbnail_media_id" class="w-full">
+                                    <option value="">— Aucune —</option>
+                                    @foreach($media as $m)
+                                        <option value="{{ $m->id }}">
+                                            {{ $m->filename ?? ('Media #'.$m->id) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">Si tu uploades un fichier, il sera prioritaire.</p>
+                            </div>
+                        </div>
+                    </div>
+                                
                     
-
-
-
-
-
-                    
-
-
                     <div>
                         <label class="block font-medium text-sm text-gray-700 mb-4">Associer des médias</label>
 
@@ -596,3 +614,6 @@
 
 {{-- TinyMCE Editor - Initialisé via resources/js/tinymce-init.js --}}
 @endsection
+
+
+

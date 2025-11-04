@@ -14,7 +14,10 @@ class Project extends Model
         'category_id',
         'category_order',
         'is_selected_work',
-        'is_locked',
+        'is_locked',  
+        //Miniature       
+        'thumbnail_media_id',
+        'thumbnail_path',
     ];
 
     protected $casts = [
@@ -27,7 +30,8 @@ class Project extends Model
         return $this->belongsToMany(Media::class);
     }
 
-    public function pages() {
+    public function pages()
+    {
         return $this->hasMany(Page::class);
     }
 
@@ -36,4 +40,23 @@ class Project extends Model
         return $this->belongsTo(Category::class);
     }
 
+    // ▼ Miniature: relation vers Media
+    public function thumbnailMedia()
+    {
+        return $this->belongsTo(Media::class, 'thumbnail_media_id');
+    }
+
+    // ▼ Miniature: URL d’affichage (priorité: Media > fichier uploadé)
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        if ($this->thumbnailMedia && $this->thumbnailMedia->path) {
+            return asset('storage/' . ltrim($this->thumbnailMedia->path, '/'));
+        }
+
+        if ($this->thumbnail_path) {
+            return asset('storage/' . ltrim($this->thumbnail_path, '/'));
+        }
+
+        return null;
+    }
 }
