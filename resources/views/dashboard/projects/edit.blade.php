@@ -215,6 +215,186 @@
                         </div>
                     </div>
 
+                    {{-- Sélection de la thumbnail --}}
+                    <div class="mb-8">
+                        <label class="block font-medium text-sm text-gray-700 mb-4">
+                            Thumbnail du projet
+                            <span class="text-xs text-gray-500 font-normal ml-2">(Cliquez sur un dossier pour voir ses médias)</span>
+                        </label>
+
+                        <div id="thumbnail-selector" class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                            <p class="text-sm text-gray-600 mb-4">La thumbnail sera utilisée pour représenter ce projet sur les pages de catégorie et la page d'accueil.</p>
+
+                            @php
+                                $currentThumbnailId = old('thumbnail_id', $project->thumbnail_id);
+                            @endphp
+
+                            {{-- Option: Pas de thumbnail --}}
+                            <div class="mb-4">
+                                <label class="relative cursor-pointer group inline-block">
+                                    <input type="radio" name="thumbnail_id" value=""
+                                           class="peer hidden"
+                                           {{ !$currentThumbnailId ? 'checked' : '' }}>
+
+                                    <div class="w-32 h-32 flex items-center justify-center rounded-md border-2 border-dashed border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition bg-white">
+                                        <div class="text-center">
+                                            <svg class="w-8 h-8 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                            <p class="text-xs text-gray-500 mt-1">Aucune</p>
+                                        </div>
+                                    </div>
+                                    <div class="absolute inset-0 rounded-md bg-indigo-500/20 opacity-0 peer-checked:opacity-100 transition pointer-events-none"></div>
+                                </label>
+                            </div>
+
+                            {{-- Liste des dossiers pliables --}}
+                            <div class="space-y-2">
+                                {{-- Dossiers existants --}}
+                                @foreach($folders as $folder)
+                                    @if($folder->media->count() > 0)
+                                        <div class="border border-gray-200 rounded-lg bg-white overflow-hidden">
+                                            <button type="button"
+                                                    onclick="toggleThumbnailFolder('folder-{{ $folder->id }}')"
+                                                    class="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                                                <div class="flex items-center">
+                                                    <svg class="w-5 h-5 mr-3 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                                                    </svg>
+                                                    <span class="font-medium text-gray-900">{{ $folder->name }}</span>
+                                                    <span class="ml-2 text-xs text-gray-500">({{ $folder->media->count() }} médias)</span>
+                                                </div>
+                                                <svg class="w-5 h-5 text-gray-400 transform transition-transform" id="icon-folder-{{ $folder->id }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                </svg>
+                                            </button>
+
+                                            <div id="folder-{{ $folder->id }}" class="hidden px-4 pb-4">
+                                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 pt-3 border-t border-gray-100">
+                                                    @foreach($folder->media as $item)
+                                                        <label class="relative cursor-pointer group">
+                                                            <input type="radio" name="thumbnail_id" value="{{ $item->id }}"
+                                                                   class="peer hidden"
+                                                                   {{ $currentThumbnailId == $item->id ? 'checked' : '' }}>
+
+                                                            @if(Str::startsWith($item->type, 'image/'))
+                                                                <img src="{{ asset('storage/' . $item->file_path) }}"
+                                                                     alt="thumbnail option"
+                                                                     class="w-full h-32 object-cover rounded-md border-2 border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition">
+                                                            @elseif($item->is_external)
+                                                                <div class="w-full h-32 rounded-md border-2 border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition overflow-hidden">
+                                                                    <iframe src="{{ $item->getEmbedUrl() }}"
+                                                                            class="w-full h-full pointer-events-none"
+                                                                            frameborder="0"></iframe>
+                                                                </div>
+                                                            @elseif(Str::startsWith($item->type, 'video/'))
+                                                                <video class="w-full h-32 object-cover rounded-md border-2 border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition" muted>
+                                                                    <source src="{{ asset('storage/' . $item->file_path) }}" type="{{ $item->type }}">
+                                                                </video>
+                                                            @endif
+
+                                                            <div class="absolute inset-0 rounded-md bg-indigo-500/20 opacity-0 peer-checked:opacity-100 transition pointer-events-none"></div>
+
+                                                            <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                                                <div class="p-1 rounded-full bg-indigo-500">
+                                                                    <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                                                    </svg>
+                                                                </div>
+                                                            </div>
+                                                        </label>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                @endforeach
+
+                                {{-- Médias non organisés --}}
+                                @if($media->count() > 0)
+                                    <div class="border border-gray-200 rounded-lg bg-white overflow-hidden">
+                                        <button type="button"
+                                                onclick="toggleThumbnailFolder('folder-unorganized')"
+                                                class="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                                            <div class="flex items-center">
+                                                <svg class="w-5 h-5 mr-3 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                                </svg>
+                                                <span class="font-medium text-gray-900">Médias non organisés</span>
+                                                <span class="ml-2 text-xs text-gray-500">({{ $media->count() }} médias)</span>
+                                            </div>
+                                            <svg class="w-5 h-5 text-gray-400 transform transition-transform" id="icon-folder-unorganized" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </button>
+
+                                        <div id="folder-unorganized" class="hidden px-4 pb-4">
+                                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 pt-3 border-t border-gray-100">
+                                                @foreach($media as $item)
+                                                    <label class="relative cursor-pointer group">
+                                                        <input type="radio" name="thumbnail_id" value="{{ $item->id }}"
+                                                               class="peer hidden"
+                                                               {{ $currentThumbnailId == $item->id ? 'checked' : '' }}>
+
+                                                        @if(Str::startsWith($item->type, 'image/'))
+                                                            <img src="{{ asset('storage/' . $item->file_path) }}"
+                                                                 alt="thumbnail option"
+                                                                 class="w-full h-32 object-cover rounded-md border-2 border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition">
+                                                        @elseif($item->is_external)
+                                                            <div class="w-full h-32 rounded-md border-2 border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition overflow-hidden">
+                                                                <iframe src="{{ $item->getEmbedUrl() }}"
+                                                                        class="w-full h-full pointer-events-none"
+                                                                        frameborder="0"></iframe>
+                                                            </div>
+                                                        @elseif(Str::startsWith($item->type, 'video/'))
+                                                            <video class="w-full h-32 object-cover rounded-md border-2 border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition" muted>
+                                                                <source src="{{ asset('storage/' . $item->file_path) }}" type="{{ $item->type }}">
+                                                            </video>
+                                                        @endif
+
+                                                        <div class="absolute inset-0 rounded-md bg-indigo-500/20 opacity-0 peer-checked:opacity-100 transition pointer-events-none"></div>
+
+                                                        <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                                            <div class="p-1 rounded-full bg-indigo-500">
+                                                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                                                </svg>
+                                                            </div>
+                                                        </div>
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+
+                            @if($folders->count() == 0 && $media->count() == 0)
+                                <p class="text-sm text-amber-600 mt-3">
+                                    <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Aucun média disponible. Ajoutez des médias dans la section Gestion des Médias.
+                                </p>
+                            @endif
+                        </div>
+                    </div>
+
+                    <script>
+                        function toggleThumbnailFolder(folderId) {
+                            const folder = document.getElementById(folderId);
+                            const icon = document.getElementById('icon-' + folderId);
+
+                            if (folder.classList.contains('hidden')) {
+                                folder.classList.remove('hidden');
+                                icon.style.transform = 'rotate(180deg)';
+                            } else {
+                                folder.classList.add('hidden');
+                                icon.style.transform = 'rotate(0deg)';
+                            }
+                        }
+                    </script>
+
                     {{-- Bouton --}}
                     <div class="flex justify-end">
                         <button type="submit"

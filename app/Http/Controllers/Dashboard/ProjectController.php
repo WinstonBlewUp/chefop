@@ -65,6 +65,7 @@ class ProjectController extends Controller
             'is_selected_work'  => 'nullable|boolean',
             'media'             => 'nullable|array',
             'media.*'           => 'exists:media,id',
+            'thumbnail_id'      => 'nullable|exists:media,id',
         ]);
 
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
@@ -84,6 +85,7 @@ class ProjectController extends Controller
             'content'           => $validated['content'] ?? null,
             'category_id'       => $validated['category_id'] ?? null,
             'is_selected_work'  => $request->boolean('is_selected_work'),
+            'thumbnail_id'      => $validated['thumbnail_id'] ?? null,
         ]);
 
         // Attacher les médias si présents
@@ -168,6 +170,7 @@ class ProjectController extends Controller
             'is_selected_work'  => 'nullable|boolean',
             'media'             => 'nullable|array',
             'media.*'           => 'exists:media,id',
+            'thumbnail_id'      => 'nullable|exists:media,id',
         ]);
 
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
@@ -179,6 +182,7 @@ class ProjectController extends Controller
             'content'           => $validated['content'] ?? null,
             'category_id'       => $validated['category_id'] ?? null,
             'is_selected_work'  => $request->boolean('is_selected_work'),
+            'thumbnail_id'      => $validated['thumbnail_id'] ?? null,
         ]);
 
         // Synchroniser les médias
