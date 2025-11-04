@@ -217,4 +217,67 @@ class MediaController extends Controller
             'message' => 'Média déplacé avec succès!',
         ]);
     }
+
+    /**
+     * Ajouter une vidéo externe via un lien
+     */
+    public function addExternalVideo(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'external_url' => 'required|url',
+                'folder_id' => 'nullable|exists:folders,id',
+            ], [
+                'external_url.required' => 'Veuillez saisir une URL de vidéo.',
+                'external_url.url' => 'L\'URL de la vidéo n\'est pas valide.',
+            ]);
+
+            // Vérifier que c'est bien une vidéo YouTube ou Vimeo
+            $url = $validated['external_url'];
+            $isYoutube = preg_match('/(youtube\.com|youtu\.be)/', $url);
+            $isVimeo = preg_match('/vimeo\.com/', $url);
+
+            if (!$isYoutube && !$isVimeo) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Seules les vidéos YouTube et Vimeo sont supportées pour le moment.',
+                ], 422);
+            }
+
+            // Créer le média
+            $media = Media::create([
+                'is_external' => true,
+                'external_url' => $validated['external_url'],
+                'type' => 'video/external',
+                'folder_id' => $validated['folder_id'] ?? null,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Vidéo externe ajoutée avec succès !',
+                'media' => [
+                    'id' => $media->id,
+                    'external_url' => $media->external_url,
+                    'type' => $media->type,
+                    'url' => $media->url,
+                    'embed_url' => $media->getEmbedUrl(),
+                ]
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->validator->errors()->first()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Exception in addExternalVideo', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de l\'ajout de la vidéo : ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

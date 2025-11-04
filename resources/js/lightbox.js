@@ -33,6 +33,7 @@ class SimpleLightbox {
                 <div id="lightbox-content" class="lightbox-content">
                     <img id="lightbox-image" src="" alt="" class="lightbox-image" />
                     <video id="lightbox-video" controls class="lightbox-video" style="display: none;"></video>
+                    <iframe id="lightbox-iframe" class="lightbox-iframe" style="display: none;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
 
                 <div id="lightbox-counter" class="lightbox-counter"></div>
@@ -112,6 +113,10 @@ class SimpleLightbox {
         const video = document.getElementById('lightbox-video');
         video.pause();
         video.currentTime = 0;
+
+        // Nettoyer l'iframe si c'est une vidéo externe
+        const iframe = document.getElementById('lightbox-iframe');
+        iframe.src = '';
     }
 
     next() {
@@ -128,6 +133,7 @@ class SimpleLightbox {
         const current = this.images[this.currentIndex];
         const img = document.getElementById('lightbox-image');
         const video = document.getElementById('lightbox-video');
+        const iframe = document.getElementById('lightbox-iframe');
         const counter = document.getElementById('lightbox-counter');
         const prevBtn = document.getElementById('lightbox-prev');
         const nextBtn = document.getElementById('lightbox-next');
@@ -156,12 +162,19 @@ class SimpleLightbox {
         }
 
         // Afficher le contenu approprié
-        if (current.type === 'video') {
+        if (current.type === 'external-video') {
+            img.style.display = 'none';
+            video.style.display = 'none';
+            iframe.style.display = 'block';
+            iframe.src = current.src;
+        } else if (current.type === 'video') {
             img.style.display = 'none';
             video.style.display = 'block';
+            iframe.style.display = 'none';
             video.src = current.src;
         } else {
             video.style.display = 'none';
+            iframe.style.display = 'none';
             img.style.display = 'block';
             img.src = current.src;
             img.alt = current.alt;

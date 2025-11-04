@@ -286,6 +286,24 @@ if ($page->project) {
                                     data-lightbox-project-url="{{ route('pages.show', $relatedProject->slug) }}"
                                 @endif
                             />
+                        @elseif ($item['media']->is_external)
+                            <div class="relative h-32 w-full">
+                                <iframe
+                                    src="{{ $item['media']->getEmbedUrl() }}"
+                                    class="h-full w-full rounded-none pointer-events-none"
+                                    frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen
+                                ></iframe>
+                                <div class="absolute inset-0 cursor-pointer"
+                                     data-lightbox="{{ $item['media']->getEmbedUrl() }}"
+                                     data-lightbox-type="external-video"
+                                     @if($relatedProject)
+                                         data-lightbox-project-title="{{ $relatedProject->title }}"
+                                         data-lightbox-project-url="{{ route('pages.show', $relatedProject->slug) }}"
+                                     @endif
+                                ></div>
+                            </div>
                         @elseif (Str::startsWith($item['media']->type, 'video/'))
                             <video
                                 src="{{ asset('storage/' . $item['media']->file_path) }}"
@@ -340,6 +358,24 @@ if ($page->project) {
                                     data-lightbox-project-url="{{ route('pages.show', $relatedProject->slug) }}"
                                 @endif
                             />
+                        @elseif ($item['media']->is_external)
+                            <div class="relative h-40 w-full">
+                                <iframe
+                                    src="{{ $item['media']->getEmbedUrl() }}"
+                                    class="h-full w-full rounded-none pointer-events-none"
+                                    frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen
+                                ></iframe>
+                                <div class="absolute inset-0 cursor-pointer"
+                                     data-lightbox="{{ $item['media']->getEmbedUrl() }}"
+                                     data-lightbox-type="external-video"
+                                     @if($relatedProject)
+                                         data-lightbox-project-title="{{ $relatedProject->title }}"
+                                         data-lightbox-project-url="{{ route('pages.show', $relatedProject->slug) }}"
+                                     @endif
+                                ></div>
+                            </div>
                         @elseif (Str::startsWith($item['media']->type, 'video/'))
                             <video
                                 src="{{ asset('storage/' . $item['media']->file_path) }}"
@@ -394,6 +430,24 @@ if ($page->project) {
                                     data-lightbox-project-url="{{ route('pages.show', $relatedProject->slug) }}"
                                 @endif
                             />
+                        @elseif ($item['media']->is_external)
+                            <div class="relative h-48 w-full">
+                                <iframe
+                                    src="{{ $item['media']->getEmbedUrl() }}"
+                                    class="h-full w-full rounded-none pointer-events-none"
+                                    frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen
+                                ></iframe>
+                                <div class="absolute inset-0 cursor-pointer"
+                                     data-lightbox="{{ $item['media']->getEmbedUrl() }}"
+                                     data-lightbox-type="external-video"
+                                     @if($relatedProject)
+                                         data-lightbox-project-title="{{ $relatedProject->title }}"
+                                         data-lightbox-project-url="{{ route('pages.show', $relatedProject->slug) }}"
+                                     @endif
+                                ></div>
+                            </div>
                         @elseif (Str::startsWith($item['media']->type, 'video/'))
                             <video
                                 src="{{ asset('storage/' . $item['media']->file_path) }}"
@@ -451,6 +505,14 @@ if ($page->project) {
                             alt="media"
                             class="h-full w-auto object-cover shadow mx-auto rounded-none"
                         />
+                    @elseif ($media->is_external)
+                        <iframe
+                            src="{{ $media->getEmbedUrl() }}"
+                            class="h-full w-auto shadow mx-auto rounded-none pointer-events-none"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen
+                        ></iframe>
                     @elseif (Str::startsWith($media->type, 'video/'))
                         <video
                             src="{{ asset('storage/' . $media->file_path) }}"
