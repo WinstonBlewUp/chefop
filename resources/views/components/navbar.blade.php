@@ -18,10 +18,14 @@
             <!-- Logo + Menu Desktop -->
             <div id="desktop-nav" class="desktop-only space-x-4 items-center">
                 <div class="mr-6">
-                    <a href="/">
-                        <img src="{{ asset('logo2.png') }}" alt="Logo" class="h-12 w-auto mr-5">
+                    <a href="/" aria-label="Accueil – NOUR ANDRÉ"
+                        class="text-gray-700 transition font-bold tracking-widest uppercase
+                                text-xl lg:text-2xl leading-none align-middle text-left">
+                                <span class="block">NOUR</span>
+    <span class="block">ANDRÉ</span>
                     </a>
                 </div>
+
 
                 @foreach ($menuLinks as $link)
                     @if($link->page_id)
@@ -40,17 +44,20 @@
 
             <!-- Logo Mobile -->
             <div id="mobile-logo" class="mobile-only">
-                <a href="/">
-                    <img src="{{ asset('logo.png') }}" alt="Logo" class="h-24 w-auto">
+                <a href="/" aria-label="Accueil – NOUR ANDRÉ"
+                    class="block text-gray-700 hover:text-indigo-600 transition font-bold tracking-widest uppercase
+                            text-2xl leading-tight text-left">
+                            <span class="block">NOUR</span>
+    <span class="block">ANDRÉ</span>
                 </a>
             </div>
 
             <!-- Liens fixes Desktop -->
             <div id="desktop-links" class="desktop-only space-x-4 items-center mr-0 lg:mr-8">
-                <a href="/stills" class="text-sm text-gray-700 hover:text-indigo-600 transition">
+                <a href="/stills" class="text-sm text-gray-700 hover:text-indigo-600 transition {{ request()->is('stills') ? 'font-bold' : '' }}">
                     STILLS
                 </a>
-                <a href="/contact" class="text-sm text-gray-700 hover:text-indigo-600 transition">
+                <a href="/contact" class="text-sm text-gray-700 hover:text-indigo-600 transition {{ request()->is('contact') ? 'font-bold' : '' }}">
                     CONTACT
                 </a>
             </div>
