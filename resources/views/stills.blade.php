@@ -26,12 +26,6 @@
                 <div class="flex-1 pr-0 lg:pr-12">
                     <!-- <h1 class="text-3xl font-bold text-center mb-8">Stills</h1> -->
 
-                    @if($stillsProject && $stillsProject->description)
-                        <div class="text-center text-gray-600 mb-8">
-                            {!! nl2br(e($stillsProject->description)) !!}
-                        </div>
-                    @endif
-
                     {{-- Grille des médias --}}
                     @if($stillsProject)
                         @php

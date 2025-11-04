@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+<style> #uploadForm { position: relative; }
+#uploadForm * { pointer-events: none; }   /* évite qu’un enfant capte le clic */
+#uploadForm input[type="file"] { pointer-events: auto; }</style>
 <div class="py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
@@ -419,6 +422,8 @@
         }
     });
 
+    
+
     function uploadFiles(files) {
         // Validation côté client
         const validFiles = [];
@@ -473,6 +478,26 @@
             });
         }
 
+        function resetUploadUI() {
+            // réinitialiser l'input pour que 'change' se redéclenche
+            fileInput.value = '';
+            // remettre la zone dans son état normal
+            progressContainer.classList.add('hidden');
+            status.classList.add('hidden');
+            progressBar.style.width = '0%';
+            progressPercent.textContent = '0%';
+            progressText.textContent = 'Upload en cours...';
+            filesList.innerHTML = '';
+            // styles visuels de la dropzone
+            dropzone.classList.remove('border-orange-500','bg-orange-100');
+            dropzone.classList.add('border-orange-300','bg-orange-50');
+            // S'assurer que la section d'upload reste visible
+            const uploadSection = document.getElementById('uploadSection');
+            if (uploadSection) {
+                uploadSection.classList.remove('hidden');
+            }
+        }
+
         // Upload avec suivi de progression
         const xhr = new XMLHttpRequest();
 
@@ -487,7 +512,7 @@
 
         xhr.addEventListener('load', () => {
             progressContainer.classList.add('hidden');
-            
+
             if (xhr.status === 200 || xhr.status === 201) {
                 try {
                     const data = JSON.parse(xhr.responseText);
@@ -501,6 +526,11 @@
                         // Ajouter les nouveaux médias à la grille sans recharger la page
                         if (data.media) {
                             addMediaToGrid(Array.isArray(data.media) ? data.media : [data.media]);
+                        }
+                        // S'assurer que la section d'upload reste visible après succès
+                        const uploadSection = document.getElementById('uploadSection');
+                        if (uploadSection && uploadSection.classList.contains('hidden')) {
+                            uploadSection.classList.remove('hidden');
                         }
                     } else {
                         showError(data.message || 'Erreur lors de l\'upload');
@@ -531,11 +561,13 @@
                 }
                 showError(errorMessage);
             }
+            resetUploadUI();
         });
 
         xhr.addEventListener('error', () => {
             progressContainer.classList.add('hidden');
             showError('Erreur de connexion lors de l\'upload');
+            resetUploadUI();
         });
 
         xhr.open('POST', dropzone.action);
@@ -833,11 +865,15 @@
     function addMediaToGrid(mediaList) {
         // Cibler spécifiquement la grille des médias non organisés
         const mediaGrid = document.getElementById('unorganized-media-grid');
-        const emptyState = document.querySelector('.text-center.text-gray-500');
 
-        // Cacher le message "Aucun média" s'il existe
-        if (emptyState) {
-            emptyState.closest('.bg-white').style.display = 'none';
+        // Cacher le message "Aucun média" s'il existe (ciblage plus spécifique)
+        const emptyStateContainer = document.querySelector('.bg-white.rounded-xl.shadow-lg.overflow-hidden:has(.text-center.text-gray-500)');
+        if (emptyStateContainer && emptyStateContainer.querySelector('.text-center.text-gray-500')) {
+            // Vérifier que c'est bien le conteneur de l'état vide et pas la section d'upload
+            const isEmpty = emptyStateContainer.querySelector('.text-center.text-gray-500')?.textContent?.includes('Aucun média');
+            if (isEmpty) {
+                emptyStateContainer.style.display = 'none';
+            }
         }
 
         // S'assurer que la grille existe
@@ -1061,6 +1097,12 @@
                 if (data.media) {
                     console.log('Ajout du média à la grille:', data.media);
                     addMediaToGrid([data.media]);
+                }
+
+                // S'assurer que la section de vidéo externe reste visible
+                const externalVideoSection = document.getElementById('externalVideoSection');
+                if (externalVideoSection && externalVideoSection.classList.contains('hidden')) {
+                    externalVideoSection.classList.remove('hidden');
                 }
             } else {
                 showError(data.message || 'Erreur lors de l\'ajout de la vidéo');
