@@ -130,6 +130,11 @@
                                                                     <img src="{{ asset('storage/' . $item->file_path) }}"
                                                                          alt="media"
                                                                          class="w-full h-20 object-cover rounded border-2 border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition-all hover:shadow-md">
+                                                                @elseif($item->is_external)
+                                                                    <iframe src="{{ $item->getEmbedUrl() }}"
+                                                                            class="w-full h-20 rounded border-2 border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition-all hover:shadow-md pointer-events-none"
+                                                                            frameborder="0"
+                                                                            allowfullscreen></iframe>
                                                                 @elseif(Str::startsWith($item->type, 'video/'))
                                                                     <video class="w-full h-20 object-cover rounded border-2 border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition-all hover:shadow-md" muted>
                                                                         <source src="{{ asset('storage/' . $item->file_path) }}" type="{{ $item->type }}">
@@ -178,13 +183,30 @@
                                            class="peer hidden"
                                            {{ in_array($item->id, $attachedMedia) ? 'checked' : '' }}>
 
-                                    <img src="{{ asset('storage/' . $item->file_path) }}"
-                                         alt="media"
-                                         class="w-full h-32 object-cover rounded-md border border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition">
+                                    @if(Str::startsWith($item->type, 'image/'))
+                                        <img src="{{ asset('storage/' . $item->file_path) }}"
+                                             alt="media"
+                                             class="w-full h-32 object-cover rounded-md border border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition">
+                                    @elseif($item->is_external)
+                                        <iframe src="{{ $item->getEmbedUrl() }}"
+                                                class="w-full h-32 rounded-md border border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition pointer-events-none"
+                                                frameborder="0"
+                                                allowfullscreen></iframe>
+                                    @elseif(Str::startsWith($item->type, 'video/'))
+                                        <video class="w-full h-32 object-cover rounded-md border border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition" muted>
+                                            <source src="{{ asset('storage/' . $item->file_path) }}" type="{{ $item->type }}">
+                                        </video>
+                                    @endif
 
+                                    @if(!$item->is_external)
                                     <div class="absolute top-1 right-1 bg-white text-xs px-2 py-1 rounded shadow opacity-0 group-hover:opacity-100 transition">
                                         {{ strtoupper(pathinfo($item->file_path, PATHINFO_EXTENSION)) }}
                                     </div>
+                                    @else
+                                    <div class="absolute top-1 right-1 bg-white text-xs px-2 py-1 rounded shadow opacity-0 group-hover:opacity-100 transition">
+                                        {{ $item->getYoutubeId() ? 'YOUTUBE' : 'VIMEO' }}
+                                    </div>
+                                    @endif
 
                                     <div class="absolute inset-0 rounded-md bg-indigo-500/20 opacity-0 peer-checked:opacity-100 transition pointer-events-none"></div>
                                 </label>

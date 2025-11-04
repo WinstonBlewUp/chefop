@@ -63,6 +63,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('dashboard')->name('das
     Route::delete('/menu/{menuLink}', [MenuController::class, 'destroy'])->name('menu.destroy');
     Route::get('/media', [MediaController::class, 'index'])->name('media.index');
     Route::post('/media/upload', [MediaController::class, 'upload'])->name('media.upload');
+    Route::post('/media/add-external-video', [MediaController::class, 'addExternalVideo'])->name('media.addExternalVideo');
     Route::post('/media/{media}/move', [MediaController::class, 'move'])->name('media.move');
     Route::post('/folders', [FolderController::class, 'store'])->name('folders.store');
     Route::put('/folders/{folder}', [FolderController::class, 'update'])->name('folders.update');

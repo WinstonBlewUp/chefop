@@ -19,21 +19,59 @@
                     </div>
                 </div>
 
-                {{-- Zone d'upload modernisée --}}
-                <form id="uploadForm" action="{{ route('dashboard.media.upload') }}" method="POST" enctype="multipart/form-data"
-                      class="border-2 border-dashed border-orange-300 rounded-xl p-8 bg-orange-50 text-center hover:bg-orange-100 transition-colors cursor-pointer">
-                    @csrf
-                    <input type="file" name="files" id="fileInput" class="hidden" accept="image/*,video/*" multiple>
-                    <div class="p-4 rounded-full bg-orange-100 mx-auto w-16 h-16 flex items-center justify-center mb-4">
-                        <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                        </svg>
+                {{-- Onglets pour choisir entre upload fichier et vidéo externe --}}
+                <div class="mb-4">
+                    <div class="flex gap-2 border-b border-gray-200">
+                        <button type="button" id="tabUpload" onclick="switchTab('upload')" class="px-4 py-2 font-medium text-orange-600 border-b-2 border-orange-600">
+                            Upload de fichiers
+                        </button>
+                        <button type="button" id="tabExternalVideo" onclick="switchTab('external')" class="px-4 py-2 font-medium text-gray-500 hover:text-gray-700">
+                            Vidéo externe (YouTube/Vimeo)
+                        </button>
                     </div>
-                    <p class="text-gray-700 font-medium mb-2">Glissez-déposez vos fichiers ici ou cliquez pour en sélectionner</p>
-                    <p class="text-sm text-gray-500 mb-2">(Sélection multiple supportée - Max 10 fichiers à la fois)</p>
-                    <p class="text-xs text-gray-400">Images : JPEG, PNG, GIF, WEBP, BMP, TIFF, SVG</p>
-                    <p class="text-xs text-gray-400">Vidéos : MP4, MOV, AVI, MKV, WMV, FLV, WEBM, M4V, 3GP... - Max 120 Mo par fichier</p>
-                </form>
+                </div>
+
+                {{-- Zone d'upload modernisée --}}
+                <div id="uploadSection">
+                    <form id="uploadForm" action="{{ route('dashboard.media.upload') }}" method="POST" enctype="multipart/form-data"
+                          class="border-2 border-dashed border-orange-300 rounded-xl p-8 bg-orange-50 text-center hover:bg-orange-100 transition-colors cursor-pointer">
+                        @csrf
+                        <input type="file" name="files" id="fileInput" class="hidden" accept="image/*,video/*" multiple>
+                        <div class="p-4 rounded-full bg-orange-100 mx-auto w-16 h-16 flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                        </div>
+                        <p class="text-gray-700 font-medium mb-2">Glissez-déposez vos fichiers ici ou cliquez pour en sélectionner</p>
+                        <p class="text-sm text-gray-500 mb-2">(Sélection multiple supportée - Max 10 fichiers à la fois)</p>
+                        <p class="text-xs text-gray-400">Images : JPEG, PNG, GIF, WEBP, BMP, TIFF, SVG</p>
+                        <p class="text-xs text-gray-400">Vidéos : MP4, MOV, AVI, MKV, WMV, FLV, WEBM, M4V, 3GP... - Max 120 Mo par fichier</p>
+                    </form>
+                </div>
+
+                {{-- Formulaire vidéo externe (caché par défaut) --}}
+                <div id="externalVideoSection" class="hidden">
+                    <form id="externalVideoForm" class="border-2 border-dashed border-blue-300 rounded-xl p-8 bg-blue-50">
+                        @csrf
+                        <div class="p-4 rounded-full bg-blue-100 mx-auto w-16 h-16 flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <p class="text-gray-700 font-medium mb-4 text-center">Ajouter une vidéo YouTube ou Vimeo</p>
+                        <div class="max-w-md mx-auto">
+                            <input type="url" id="externalVideoUrl" name="external_url"
+                                   placeholder="https://www.youtube.com/watch?v=..."
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
+                                   required>
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                Ajouter la vidéo
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 text-center mt-4">Formats supportés : YouTube (youtube.com, youtu.be) et Vimeo (vimeo.com)</p>
+                    </form>
+                </div>
 
                 {{-- Barre de progression pour les uploads multiples --}}
                 <div id="uploadProgress" class="mt-4 hidden">
@@ -146,11 +184,18 @@
                                         <div class="grid grid-cols-2 gap-2">
                                             @foreach($folder->media as $item)
                                                 <div class="relative cursor-pointer group/media bg-white rounded border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden"
-                                                     onclick="openMediaModal('{{ asset('storage/' . $item->file_path) }}', '{{ $item->type }}', '{{ pathinfo($item->file_path, PATHINFO_FILENAME) }}')">
+                                                     onclick="openMediaModal('{{ $item->is_external ? $item->getEmbedUrl() : asset('storage/' . $item->file_path) }}', '{{ $item->type }}', '{{ $item->is_external ? 'external-video' : pathinfo($item->file_path, PATHINFO_FILENAME) }}')">
                                                     @if(Str::startsWith($item->type, 'image/'))
                                                         <img src="{{ asset('storage/' . $item->file_path) }}"
                                                              alt="media"
                                                              class="w-full h-20 object-cover group-hover/media:scale-105 transition-transform duration-300">
+                                                    @elseif($item->is_external)
+                                                        <div class="relative w-full h-20 bg-gray-900">
+                                                            <iframe src="{{ $item->getEmbedUrl() }}"
+                                                                    class="w-full h-full pointer-events-none"
+                                                                    frameborder="0"
+                                                                    allowfullscreen></iframe>
+                                                        </div>
                                                     @elseif(Str::startsWith($item->type, 'video/'))
                                                         <div class="relative w-full h-20 bg-gray-900">
                                                             <video class="w-full h-full object-cover" muted preload="metadata">
@@ -192,19 +237,35 @@
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <div id="unorganized-media-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                         @foreach($media as $item)
                             <div class="relative cursor-move group bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden"
                                  draggable="true"
                                  data-media-id="{{ $item->id }}"
                                  ondragstart="handleMediaDragStart(event, {{ $item->id }})"
                                  ondragend="handleMediaDragEnd(event)"
-                                 onclick="openMediaModal('{{ asset('storage/' . $item->file_path) }}', '{{ $item->type }}', '{{ pathinfo($item->file_path, PATHINFO_FILENAME) }}')">
-                                
+                                 onclick="openMediaModal('{{ $item->is_external ? $item->getEmbedUrl() : asset('storage/' . $item->file_path) }}', '{{ $item->type }}', '{{ $item->is_external ? 'external-video' : pathinfo($item->file_path, PATHINFO_FILENAME) }}')">
+
                                 @if(Str::startsWith($item->type, 'image/'))
                                     <img src="{{ asset('storage/' . $item->file_path) }}"
                                          alt="media"
                                          class="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300">
+                                @elseif($item->is_external)
+                                    <div class="relative w-full h-32 bg-gray-900">
+                                        <iframe src="{{ $item->getEmbedUrl() }}"
+                                                class="w-full h-full pointer-events-none"
+                                                frameborder="0"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowfullscreen></iframe>
+                                        {{-- Overlay de lecture --}}
+                                        <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                            <div class="bg-white bg-opacity-90 rounded-full p-2">
+                                                <svg class="w-6 h-6 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M8 5v14l11-7z"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
                                 @elseif(Str::startsWith($item->type, 'video/'))
                                     <div class="relative w-full h-32 bg-gray-900">
                                         <video class="w-full h-full object-cover"
@@ -229,9 +290,15 @@
                                 @endif
 
                                 {{-- Badge du format de fichier --}}
+                                @if(!$item->is_external)
                                 <div class="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
                                     {{ strtoupper(pathinfo($item->file_path, PATHINFO_EXTENSION)) }}
                                 </div>
+                                @else
+                                <div class="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                                    {{ $item->getYoutubeId() ? 'YOUTUBE' : 'VIMEO' }}
+                                </div>
+                                @endif
 
                                 {{-- Indicateur de type de média --}}
                                 <div class="absolute bottom-2 left-2">
@@ -505,13 +572,23 @@
     function openMediaModal(url, type, name) {
         const modal = document.getElementById('mediaModal');
         const content = document.getElementById('modalContent');
-        
+
         if (type.startsWith('image/')) {
             content.innerHTML = `
                 <div class="p-4">
                     <img src="${url}" alt="${name}" class="max-w-full max-h-[80vh] object-contain mx-auto">
                     <div class="mt-4 text-center text-gray-600">
                         <p class="font-medium">${name}</p>
+                        <p class="text-sm">${type}</p>
+                    </div>
+                </div>
+            `;
+        } else if (type === 'video/external') {
+            content.innerHTML = `
+                <div class="p-4">
+                    <iframe src="${url}" class="w-full mx-auto" style="height: 80vh;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    <div class="mt-4 text-center text-gray-600">
+                        <p class="font-medium">Vidéo externe</p>
                         <p class="text-sm">${type}</p>
                     </div>
                 </div>
@@ -530,7 +607,7 @@
                 </div>
             `;
         }
-        
+
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
     }
@@ -539,12 +616,18 @@
         const modal = document.getElementById('mediaModal');
         modal.classList.add('hidden');
         document.body.style.overflow = '';
-        
+
         // Arrêter les vidéos en cours de lecture
         const videos = modal.querySelectorAll('video');
         videos.forEach(video => {
             video.pause();
             video.currentTime = 0;
+        });
+
+        // Nettoyer les iframes
+        const iframes = modal.querySelectorAll('iframe');
+        iframes.forEach(iframe => {
+            iframe.src = iframe.src; // Force reload to stop playback
         });
     }
 
@@ -748,30 +831,48 @@
 
     // Fonction pour ajouter dynamiquement les nouveaux médias à la grille
     function addMediaToGrid(mediaList) {
-        const mediaGrid = document.querySelector('.grid');
+        // Cibler spécifiquement la grille des médias non organisés
+        const mediaGrid = document.getElementById('unorganized-media-grid');
         const emptyState = document.querySelector('.text-center.text-gray-500');
-        
+
         // Cacher le message "Aucun média" s'il existe
         if (emptyState) {
             emptyState.closest('.bg-white').style.display = 'none';
         }
-        
+
         // S'assurer que la grille existe
         if (!mediaGrid) {
+            console.log('Grille des médias non trouvée, rechargement de la page');
             location.reload();
             return;
         }
 
+        console.log('Grille trouvée:', mediaGrid);
+
         mediaList.forEach(media => {
+            console.log('Traitement du média:', media);
+
             const mediaItem = document.createElement('div');
             mediaItem.className = 'relative cursor-pointer group bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden';
-            mediaItem.onclick = () => openMediaModal(media.url, media.type, media.file_path.split('/').pop().split('.')[0]);
-            
+
+            // Gérer le nom du fichier (vidéo externe n'a pas de file_path)
+            const fileName = media.file_path ? media.file_path.split('/').pop().split('.')[0] : 'external-video';
+            const fileExt = media.file_path ? media.file_path.split('.').pop().toUpperCase() : (media.external_url ? 'YOUTUBE/VIMEO' : 'VIDEO');
+
+            console.log('Type de média:', media.type);
+            console.log('Est vidéo externe?', media.type === 'video/external');
+            console.log('A embed_url?', !!media.embed_url);
+
+            // Utiliser embed_url pour les vidéos externes, sinon url
+            const modalUrl = (media.type === 'video/external' && media.embed_url) ? media.embed_url : media.url;
+            mediaItem.onclick = () => openMediaModal(modalUrl, media.type, fileName);
+
             if (media.type.startsWith('image/')) {
+                console.log('Création élément image');
                 mediaItem.innerHTML = `
                     <img src="${media.url}" alt="media" class="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300">
                     <div class="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
-                        ${media.file_path.split('.').pop().toUpperCase()}
+                        ${fileExt}
                     </div>
                     <div class="absolute bottom-2 left-2">
                         <div class="p-1 rounded-full bg-green-100 bg-opacity-90">
@@ -781,7 +882,39 @@
                         </div>
                     </div>
                 `;
+            } else if (media.type === 'video/external' || media.embed_url) {
+                // Vidéo externe (YouTube/Vimeo)
+                console.log('Création élément vidéo externe avec embed_url:', media.embed_url);
+                mediaItem.innerHTML = `
+                    <div class="relative w-full h-32 bg-gray-900">
+                        <iframe src="${media.embed_url || media.url}" class="w-full h-full pointer-events-none" frameborder="0" allowfullscreen></iframe>
+                        <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div class="bg-white bg-opacity-90 rounded-full p-2">
+                                <svg class="w-6 h-6 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                        ${fileExt}
+                    </div>
+                    <div class="absolute bottom-2 left-2">
+                        <div class="p-1 rounded-full bg-purple-100 bg-opacity-90">
+                            <svg class="w-3 h-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-1 py-0.5 rounded">
+                        <svg class="w-3 h-3 inline" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M21 3H3v18h18V3zm-10 7.5L14 13l-3 2.5v-5z"/>
+                        </svg>
+                    </div>
+                `;
             } else if (media.type.startsWith('video/')) {
+                console.log('Création élément vidéo locale');
                 mediaItem.innerHTML = `
                     <div class="relative w-full h-32 bg-gray-900">
                         <video class="w-full h-full object-cover" muted preload="metadata">
@@ -801,7 +934,7 @@
                         </div>
                     </div>
                     <div class="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
-                        ${media.file_path.split('.').pop().toUpperCase()}
+                        ${fileExt}
                     </div>
                     <div class="absolute bottom-2 left-2">
                         <div class="p-1 rounded-full bg-blue-100 bg-opacity-90">
@@ -817,27 +950,129 @@
                     </div>
                 `;
             }
-            
+
+            console.log('HTML généré:', mediaItem.innerHTML.substring(0, 200));
+
             // Ajouter l'élément au début de la grille
+            console.log('Insertion du média dans la grille');
             mediaGrid.insertBefore(mediaItem, mediaGrid.firstChild);
             
             // Animation d'apparition
             mediaItem.style.opacity = '0';
             mediaItem.style.transform = 'scale(0.8)';
+            console.log('Démarrage animation pour:', media.id);
             setTimeout(() => {
                 mediaItem.style.transition = 'opacity 0.3s, transform 0.3s';
                 mediaItem.style.opacity = '1';
                 mediaItem.style.transform = 'scale(1)';
+                console.log('Animation terminée pour:', media.id);
             }, 10);
         });
 
         // Mettre à jour le compteur de médias
         const counterElement = document.querySelector('.text-sm.text-gray-600');
-        if (counterElement && counterElement.textContent.includes('média(s) au total')) {
-            const currentCount = parseInt(counterElement.textContent.match(/\d+/)[0]);
-            const newCount = currentCount + mediaList.length;
-            counterElement.textContent = `${newCount} média(s) au total`;
+        console.log('Compteur trouvé:', counterElement);
+        console.log('Texte du compteur:', counterElement?.textContent);
+
+        if (counterElement) {
+            if (counterElement.textContent.includes('média(s) sans dossier')) {
+                const currentCount = parseInt(counterElement.textContent.match(/\d+/)[0]);
+                const newCount = currentCount + mediaList.length;
+                counterElement.textContent = `${newCount} média(s) sans dossier`;
+                console.log('Compteur mis à jour:', newCount);
+            } else if (counterElement.textContent.includes('média(s) au total')) {
+                const currentCount = parseInt(counterElement.textContent.match(/\d+/)[0]);
+                const newCount = currentCount + mediaList.length;
+                counterElement.textContent = `${newCount} média(s) au total`;
+                console.log('Compteur mis à jour:', newCount);
+            }
+        }
+
+        console.log('Ajout terminé! Nombre d\'éléments dans la grille:', mediaGrid.children.length);
+    }
+
+    // Gestion des onglets (upload fichier vs vidéo externe)
+    function switchTab(tabName) {
+        const uploadSection = document.getElementById('uploadSection');
+        const externalVideoSection = document.getElementById('externalVideoSection');
+        const tabUpload = document.getElementById('tabUpload');
+        const tabExternalVideo = document.getElementById('tabExternalVideo');
+
+        if (tabName === 'upload') {
+            uploadSection.classList.remove('hidden');
+            externalVideoSection.classList.add('hidden');
+            tabUpload.classList.add('text-orange-600', 'border-b-2', 'border-orange-600');
+            tabUpload.classList.remove('text-gray-500');
+            tabExternalVideo.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+            tabExternalVideo.classList.add('text-gray-500');
+        } else if (tabName === 'external') {
+            uploadSection.classList.add('hidden');
+            externalVideoSection.classList.remove('hidden');
+            tabExternalVideo.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+            tabExternalVideo.classList.remove('text-gray-500');
+            tabUpload.classList.remove('text-orange-600', 'border-b-2', 'border-orange-600');
+            tabUpload.classList.add('text-gray-500');
         }
     }
+
+    // Gestion du formulaire de vidéo externe
+    const externalVideoForm = document.getElementById('externalVideoForm');
+    externalVideoForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const urlInput = document.getElementById('externalVideoUrl');
+        const url = urlInput.value.trim();
+
+        if (!url) {
+            showError('Veuillez saisir une URL de vidéo.');
+            return;
+        }
+
+        // Désactiver le formulaire pendant l'envoi
+        const submitBtn = externalVideoForm.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Ajout en cours...';
+
+        try {
+            console.log('Envoi de la requête pour:', url);
+
+            const response = await fetch('{{ route("dashboard.media.addExternalVideo") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ external_url: url })
+            });
+
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+
+            const data = await response.json();
+            console.log('Response data:', data);
+
+            if (data.success) {
+                showSuccess(data.message);
+                urlInput.value = '';
+
+                // Ajouter le média à la grille
+                if (data.media) {
+                    console.log('Ajout du média à la grille:', data.media);
+                    addMediaToGrid([data.media]);
+                }
+            } else {
+                showError(data.message || 'Erreur lors de l\'ajout de la vidéo');
+            }
+        } catch (error) {
+            console.error('Error détaillée:', error);
+            console.error('Error stack:', error.stack);
+            showError('Erreur lors de l\'ajout de la vidéo : ' + error.message);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
+        }
+    });
 </script>
 @endsection

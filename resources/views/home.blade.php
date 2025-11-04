@@ -52,6 +52,14 @@
                                                 alt="media"
                                                 class="h-full w-auto object-cover shadow mx-auto rounded-none"
                                             />
+                                        @elseif ($media->is_external)
+                                            <iframe
+                                                src="{{ $media->getEmbedUrl() }}"
+                                                class="h-full w-auto shadow mx-auto rounded-none pointer-events-none"
+                                                frameborder="0"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowfullscreen
+                                            ></iframe>
                                         @elseif (Str::startsWith($media->type, 'video/'))
                                             <video
                                                 src="{{ asset('storage/' . $media->file_path) }}"

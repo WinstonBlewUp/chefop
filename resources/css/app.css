@@ -32,11 +32,18 @@
 }
 
 .lightbox-image,
-.lightbox-video {
+.lightbox-video,
+.lightbox-iframe {
     max-width: 100%;
     max-height: 90vh;
     object-fit: contain;
     user-select: none;
+}
+
+.lightbox-iframe {
+    width: 90vw;
+    height: 90vh;
+    aspect-ratio: 16 / 9;
 }
 
 .lightbox-close {
