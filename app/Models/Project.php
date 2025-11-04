@@ -15,6 +15,7 @@ class Project extends Model
         'category_order',
         'is_selected_work',
         'is_locked',
+        'thumbnail_id',
     ];
 
     protected $casts = [
@@ -25,6 +26,11 @@ class Project extends Model
     public function media()
     {
         return $this->belongsToMany(Media::class);
+    }
+
+    public function thumbnail()
+    {
+        return $this->belongsTo(Media::class, 'thumbnail_id');
     }
 
     public function pages() {

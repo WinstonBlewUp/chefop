@@ -14,8 +14,8 @@ use App\Models\Project;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    $selectedWorkProjects = \App\Models\Project::where('is_selected_work', true)->with('media')->get();
-    
+    $selectedWorkProjects = \App\Models\Project::where('is_selected_work', true)->with(['media', 'thumbnail'])->get();
+
     return view('home', compact('selectedWorkProjects'));
 });
 
@@ -78,8 +78,8 @@ Route::get('/pages/{slug}', [PageController::class, 'show'])->name('pages.show')
 Route::get('/categories/{slug}', function (string $slug) {
     $category = Category::where('name', $slug)->firstOrFail();
 
-    // Récupérer tous les projets de cette catégorie avec leurs médias, triés par category_order
-    $projects = $category->projects()->with('media')->orderBy('category_order')->get();
+    // Récupérer tous les projets de cette catégorie avec leurs médias et thumbnails, triés par category_order
+    $projects = $category->projects()->with(['media', 'thumbnail'])->orderBy('category_order')->get();
 
     return view('categories.show', compact('category', 'projects'));
 })->name('categories.show');
