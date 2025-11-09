@@ -21,11 +21,9 @@
                     <a href="/" aria-label="Accueil – NOUR ANDRÉ"
                         class="text-gray-700 transition font-bold tracking-widest uppercase
                                 text-xl lg:text-2xl leading-none align-middle text-left">
-                                <span class="block">NOUR ANDRÉ</span>
-                                
+                        <span class="whitespace-nowrap">NOUR&nbsp;ANDRÉ</span>
                     </a>
                 </div>
-
 
                 @foreach ($menuLinks as $link)
                     @if($link->page_id)
@@ -47,8 +45,7 @@
                 <a href="/" aria-label="Accueil – NOUR ANDRÉ"
                     class="block text-gray-700 font-bold tracking-widest uppercase
                             text-2xl leading-tight text-left">
-                            <span class="block">NOUR</span>
-    <span class="block">ANDRÉ</span>
+                    <span class="whitespace-nowrap">NOUR&nbsp;ANDRÉ</span>
                 </a>
             </div>
 
