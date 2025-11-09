@@ -39,35 +39,26 @@
                         <textarea name="description" rows="4" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-200 focus:border-green-400"></textarea>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block font-medium text-sm text-gray-700 mb-2">Catégorie</label>
-                            <select name="category_id" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-200 focus:border-green-400">
-                                <option value="">-- Sélectionner une catégorie --</option>
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}">{{ $category->name }}</option>
-                                @endforeach
-                            </select>
+                    <div>
+                        <label class="block font-medium text-sm text-gray-700 mb-3">Catégories</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            @foreach ($categories as $category)
+                                <div class="flex items-center">
+                                    <input type="checkbox"
+                                           name="categories[]"
+                                           value="{{ $category->id }}"
+                                           id="category_{{ $category->id }}"
+                                           class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2">
+                                    <label for="category_{{ $category->id }}" class="ml-2 text-sm text-gray-700">
+                                        {{ $category->name }}
+                                        @if($category->is_special)
+                                            <span class="text-orange-500">★</span>
+                                        @endif
+                                    </label>
+                                </div>
+                            @endforeach
                         </div>
-
-                        <div class="flex items-center">
-                            <div class="flex items-center h-5">
-                                <input type="checkbox" name="is_selected_work" value="1" 
-                                       id="is_selected_work" 
-                                       class="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 focus:ring-2">
-                            </div>
-                            <div class="ml-3">
-                                <label for="is_selected_work" class="font-medium text-sm text-gray-700">
-                                    <span class="flex items-center">
-                                        <svg class="w-4 h-4 text-orange-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                        </svg>
-                                        Ajouter à "Selected Work"
-                                    </span>
-                                </label>
-                                <p class="text-xs text-gray-500 mt-1">Ce projet apparaîtra sur la page d'accueil en plus de sa catégorie</p>
-                            </div>
-                        </div>
+                        <p class="text-xs text-gray-500 mt-2">Sélectionnez une ou plusieurs catégories pour ce projet</p>
                     </div>
 
                     <div>
@@ -321,22 +312,22 @@
                             <div>
                                 <div class="font-medium text-gray-900">{{ $proj->title }}</div>
                                 <div class="text-sm text-gray-500">{{ $proj->slug }}</div>
-                                <div class="flex items-center space-x-2 mt-1">
-                                    @if($proj->category)
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                            {{ $proj->category->name }}
-                                        </span>
+                                <div class="flex items-center flex-wrap gap-2 mt-1">
+                                    @if($proj->categories->count() > 0)
+                                        @foreach($proj->categories as $cat)
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                                {{ $cat->is_special ? 'bg-orange-100 text-orange-800' : 'bg-purple-100 text-purple-800' }}">
+                                                @if($cat->is_special)
+                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                                    </svg>
+                                                @endif
+                                                {{ $cat->name }}
+                                            </span>
+                                        @endforeach
                                     @else
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
                                             Sans catégorie
-                                        </span>
-                                    @endif
-                                    @if($proj->is_selected_work)
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                            </svg>
-                                            Selected Work
                                         </span>
                                     @endif
 
@@ -610,5 +601,28 @@
     // ============ Fin gestion des dossiers ============
 </script>
 
-{{-- TinyMCE Editor - Initialisé via resources/js/tinymce-init.js --}}
+{{-- TinyMCE from local files --}}
+<script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    tinymce.init({
+        selector: '#content',
+        license_key: 'gpl',
+        height: 500,
+        menubar: false,
+        plugins: [
+            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+            'insertdatetime', 'media', 'table', 'help', 'wordcount'
+        ],
+        toolbar: 'undo redo | blocks | ' +
+            'bold italic backcolor | alignleft aligncenter ' +
+            'alignright alignjustify | bullist numlist outdent indent | ' +
+            'removeformat | help',
+        content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:16px }',
+        skin_url: '{{ asset("tinymce/skins/ui/oxide") }}',
+        content_css: '{{ asset("tinymce/skins/content/default/content.css") }}'
+    });
+});
+</script>
 @endsection

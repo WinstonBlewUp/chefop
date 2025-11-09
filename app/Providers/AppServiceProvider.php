@@ -29,8 +29,8 @@ class AppServiceProvider extends ServiceProvider
                 if ($link->page_id) {
                     return true; // Garder toutes les pages
                 }
-                // Exclure Selected Work et Stills des catégories du menu
-                return !in_array($link->slug, ['selected-work', 'stills']);
+                // Exclure uniquement Stills (qui a sa propre page dédiée)
+                return $link->slug !== 'stills';
             });
             
             $view->with('menuLinks', $menuLinks);

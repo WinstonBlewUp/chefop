@@ -11,7 +11,6 @@ class Project extends Model
         'slug',
         'description',
         'content',
-        'category_id',
         'category_order',
         'is_selected_work',
         'is_locked',
@@ -40,6 +39,11 @@ class Project extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class);
     }
 
 }

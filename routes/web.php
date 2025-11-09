@@ -78,8 +78,16 @@ Route::get('/pages/{slug}', [PageController::class, 'show'])->name('pages.show')
 Route::get('/categories/{slug}', function (string $slug) {
     $category = Category::where('name', $slug)->firstOrFail();
 
-    // Récupérer tous les projets de cette catégorie avec leurs médias et thumbnails, triés par category_order
-    $projects = $category->projects()->with(['media', 'thumbnail'])->orderBy('category_order')->get();
+    // Si c'est une catégorie spéciale (Selected Work), récupérer tous les projets marqués is_selected_work
+    if ($category->is_special) {
+        $projects = Project::where('is_selected_work', true)
+            ->with(['media', 'thumbnail'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+    } else {
+        // Récupérer tous les projets de cette catégorie avec leurs médias et thumbnails, triés par category_order
+        $projects = $category->projects()->with(['media', 'thumbnail'])->orderBy('category_order')->get();
+    }
 
     return view('categories.show', compact('category', 'projects'));
 })->name('categories.show');
