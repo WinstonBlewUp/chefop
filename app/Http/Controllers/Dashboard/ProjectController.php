@@ -162,8 +162,15 @@ class ProjectController extends Controller
         $attachedMedia = $project->media()->pluck('media.id')->toArray();
         $attachedCategories = $project->categories()->pluck('categories.id')->toArray();
 
+        // Variables pour le sélecteur de thumbnail
+        $currentThumb = $project->thumbnail_id
+            ? ($project->relationLoaded('thumbnail') ? $project->thumbnail : Media::find($project->thumbnail_id))
+            : null;
+        $currentThumbFolderId = $currentThumb?->folder_id;
+
         return view('dashboard.projects.edit', compact(
-            'project', 'media', 'folders', 'attachedMedia', 'categories', 'attachedCategories'
+            'project', 'media', 'folders', 'attachedMedia', 'categories', 'attachedCategories',
+            'currentThumb', 'currentThumbFolderId'
         ));
     }
 

@@ -17,6 +17,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Version
+    |--------------------------------------------------------------------------
+    |
+    | This value is the version of your application following Semantic Versioning.
+    | Format: MAJOR.MINOR.PATCH
+    | - MAJOR: Incompatible API changes
+    | - MINOR: Backwards-compatible new features
+    | - PATCH: Backwards-compatible bug fixes
+    |
+    */
+
+    'version' => '1.3.0',
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

@@ -15,13 +15,13 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('dashboard.projects.create')" :active="request()->routeIs('dashboard.projects.*')">
+                    <x-nav-link :href="route('dashboard.projects.create')" :active="request()->routeIs('dashboard.projects.*')" color="green">
                         {{ __('Projets') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('dashboard.categories.index')" :active="request()->routeIs('dashboard.categories.*')">
+                    <x-nav-link :href="route('dashboard.categories.index')" :active="request()->routeIs('dashboard.categories.*')" color="purple">
                         {{ __('Catégories') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('dashboard.media.index')" :active="request()->routeIs('dashboard.media.*')">
+                    <x-nav-link :href="route('dashboard.media.index')" :active="request()->routeIs('dashboard.media.*')" color="orange">
                         {{ __('Médias') }}
                     </x-nav-link>
                     <x-nav-link :href="route('dashboard.contact.edit')" :active="request()->routeIs('dashboard.contact.*')">
@@ -83,13 +83,13 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('dashboard.projects.create')" :active="request()->routeIs('dashboard.projects.*')">
+            <x-responsive-nav-link :href="route('dashboard.projects.create')" :active="request()->routeIs('dashboard.projects.*')" color="green">
                 {{ __('Projets') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('dashboard.categories.index')" :active="request()->routeIs('dashboard.categories.*')">
+            <x-responsive-nav-link :href="route('dashboard.categories.index')" :active="request()->routeIs('dashboard.categories.*')" color="purple">
                 {{ __('Catégories') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('dashboard.media.index')" :active="request()->routeIs('dashboard.media.*')">
+            <x-responsive-nav-link :href="route('dashboard.media.index')" :active="request()->routeIs('dashboard.media.*')" color="orange">
                 {{ __('Médias') }}
             </x-responsive-nav-link>
         </div>

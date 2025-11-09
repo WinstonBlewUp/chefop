@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Folder extends Model
 {
-    protected $fillable = ['name', 'parent_id', 'order'];
+    protected $fillable = ['name', 'parent_id', 'order', 'color'];
 
     // Relation: dossier parent
     public function parent()

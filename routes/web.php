@@ -68,6 +68,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('dashboard')->name('das
     Route::post('/folders', [FolderController::class, 'store'])->name('folders.store');
     Route::put('/folders/{folder}', [FolderController::class, 'update'])->name('folders.update');
     Route::delete('/folders/{folder}', [FolderController::class, 'destroy'])->name('folders.destroy');
+    Route::post('/folders/reorder', [FolderController::class, 'reorder'])->name('folders.reorder');
     Route::resource('/projects', ProjectController::class);
     Route::post('/projects/{project}/publish-page', [ProjectController::class, 'publishPage'])->name('projects.publish-page');
     Route::post('/projects/store-without-category', [ProjectController::class, 'storeWithoutCategory'])->name('projects.store-without-category');

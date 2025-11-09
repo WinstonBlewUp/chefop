@@ -13,11 +13,13 @@ class FolderController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'parent_id' => 'nullable|exists:folders,id',
+            'color' => 'nullable|string|max:7',
         ]);
 
         $folder = Folder::create([
             'name' => $validated['name'],
             'parent_id' => $validated['parent_id'] ?? null,
+            'color' => $validated['color'] ?? '#3B82F6',
             'order' => Folder::where('parent_id', $validated['parent_id'] ?? null)->max('order') + 1,
         ]);
 
@@ -32,6 +34,7 @@ class FolderController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'color' => 'nullable|string|max:7',
         ]);
 
         $folder->update($validated);
@@ -39,7 +42,7 @@ class FolderController extends Controller
         return response()->json([
             'success' => true,
             'folder' => $folder,
-            'message' => 'Dossier renommé avec succès!',
+            'message' => 'Dossier mis à jour avec succès!',
         ]);
     }
 
@@ -54,6 +57,24 @@ class FolderController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Dossier supprimé avec succès!',
+        ]);
+    }
+
+    public function reorder(Request $request)
+    {
+        $validated = $request->validate([
+            'folders' => 'required|array',
+            'folders.*.id' => 'required|exists:folders,id',
+            'folders.*.order' => 'required|integer',
+        ]);
+
+        foreach ($validated['folders'] as $folderData) {
+            Folder::where('id', $folderData['id'])->update(['order' => $folderData['order']]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Ordre des dossiers mis à jour!',
         ]);
     }
 }

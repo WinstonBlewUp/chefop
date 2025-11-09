@@ -153,20 +153,31 @@
 
                 {{-- Liste des dossiers pliables --}}
                 @if($folders->count() > 0)
-                    <div class="space-y-2 mb-4">
+                    <div class="space-y-2 mb-4" id="folders-list">
                         {{-- Dossiers existants --}}
                         @foreach($folders as $folder)
                             @if($folder->media->count() > 0)
-                                <div class="border border-gray-200 rounded-lg bg-white overflow-hidden"
+                                <div class="border border-gray-200 rounded-lg bg-white overflow-hidden folder-item"
                                      data-folder-id="{{ $folder->id }}"
                                      data-folder-name="{{ $folder->name }}"
-                                     ondragover="handleFolderDragOver(event)"
-                                     ondragleave="handleFolderDragLeave(event)"
-                                     ondrop="handleDropOnFolder(event, {{ $folder->id }})">
+                                     data-folder-order="{{ $folder->order }}"
+                                     ondragover="handleFolderItemDragOver(event)"
+                                     ondragleave="handleFolderItemDragLeave(event)"
+                                     ondrop="handleFolderItemDrop(event)">
                                     <div class="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer"
                                          onclick="toggleFolderMedias({{ $folder->id }})">
                                         <div class="flex items-center">
-                                            <svg class="w-5 h-5 mr-3 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                            {{-- Drag Handle --}}
+                                            <div class="drag-handle cursor-grab active:cursor-grabbing mr-2 p-1"
+                                                 draggable="true"
+                                                 ondragstart="handleFolderDragStart(event)"
+                                                 ondragend="handleFolderDragEnd(event)"
+                                                 onclick="event.stopPropagation()">
+                                                <svg class="w-4 h-4 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M9 3h2v2H9V3zm0 4h2v2H9V7zm0 4h2v2H9v-2zm0 4h2v2H9v-2zm0 4h2v2H9v-2zM13 3h2v2h-2V3zm0 4h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z"/>
+                                                </svg>
+                                            </div>
+                                            <svg class="w-5 h-5 mr-3" fill="{{ $folder->color ?? '#3B82F6' }}" viewBox="0 0 24 24">
                                                 <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
                                             </svg>
                                             <span class="font-medium text-gray-900">{{ $folder->name }}</span>
@@ -174,7 +185,7 @@
                                         </div>
                                         <div class="flex items-center gap-2">
                                             {{-- Boutons edit/delete --}}
-                                            <button onclick="event.stopPropagation(); openEditFolderModal({{ $folder->id }}, '{{ $folder->name }}')"
+                                            <button onclick="event.stopPropagation(); openEditFolderModal({{ $folder->id }}, '{{ $folder->name }}', '{{ $folder->color ?? '#3B82F6' }}')"
                                                     class="p-1 text-gray-600 hover:bg-gray-200 rounded transition"
                                                     title="Modifier">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -355,6 +366,73 @@
         <div id="modalContent" class="bg-white rounded-lg overflow-hidden shadow-2xl max-h-full">
             {{-- Le contenu sera injecté dynamiquement --}}
         </div>
+    </div>
+</div>
+
+{{-- Modal Créer Dossier --}}
+<div id="createFolderModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-lg font-semibold mb-4">Nouveau dossier</h3>
+        <form onsubmit="event.preventDefault(); createFolder();">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Nom du dossier</label>
+                <input type="text" id="newFolderName"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                       placeholder="Mon dossier" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Couleur</label>
+                <div class="flex items-center gap-3">
+                    <input type="color" id="newFolderColor" value="#3B82F6"
+                           class="h-10 w-20 border border-gray-300 rounded cursor-pointer">
+                    <span class="text-sm text-gray-500">Choisissez une couleur pour ce dossier</span>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button type="button" onclick="closeCreateFolderModal()"
+                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700">
+                    Annuler
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                    Créer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- Modal Modifier Dossier --}}
+<div id="editFolderModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-lg font-semibold mb-4">Modifier le dossier</h3>
+        <form onsubmit="event.preventDefault(); updateFolder();">
+            <input type="hidden" id="editFolderId">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Nom du dossier</label>
+                <input type="text" id="editFolderName"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                       placeholder="Mon dossier" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Couleur</label>
+                <div class="flex items-center gap-3">
+                    <input type="color" id="editFolderColor" value="#3B82F6"
+                           class="h-10 w-20 border border-gray-300 rounded cursor-pointer">
+                    <span class="text-sm text-gray-500">Choisissez une couleur pour ce dossier</span>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button type="button" onclick="closeEditFolderModal()"
+                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700">
+                    Annuler
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                    Sauvegarder
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -684,50 +762,118 @@
         event.currentTarget.style.opacity = '1';
     }
 
-    function handleFolderDragOver(event) {
+    function updateMediaCount(delta) {
+        const counterElement = document.querySelector('.text-sm.text-gray-600');
+        if (counterElement && counterElement.textContent.includes('média(s) sans dossier')) {
+            const currentCount = parseInt(counterElement.textContent.match(/\d+/)[0]);
+            const newCount = currentCount + delta;
+            counterElement.textContent = `${newCount} média(s) sans dossier`;
+        }
+    }
+
+    // ===== DRAG & DROP DES DOSSIERS =====
+    let draggedFolderElement = null;
+
+    function handleFolderDragStart(event) {
+        // Récupérer le folder-item parent (l'élément qu'on déplace réellement)
+        draggedFolderElement = event.target.closest('.folder-item');
+        if (!draggedFolderElement) {
+            event.preventDefault();
+            return;
+        }
+
+        draggedFolderElement.style.opacity = '0.5';
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/html', draggedFolderElement.innerHTML);
+    }
+
+    function handleFolderDragEnd(event) {
+        if (draggedFolderElement) {
+            draggedFolderElement.style.opacity = '1';
+        }
+
+        // Nettoyer tous les indicateurs visuels
+        document.querySelectorAll('.folder-item').forEach(item => {
+            item.classList.remove('border-green-500', 'border-t-4', 'border-orange-500', 'border-2', 'bg-orange-50');
+        });
+
+        draggedFolderElement = null;
+    }
+
+    function handleFolderItemDragOver(event) {
         event.preventDefault();
         event.dataTransfer.dropEffect = 'move';
-        // Ajouter un indicateur visuel
-        event.currentTarget.classList.add('border-orange-500', 'border-2', 'bg-orange-50');
+
+        const targetElement = event.currentTarget;
+
+        // Si on déplace un média dans un dossier
+        if (draggedMediaId) {
+            targetElement.classList.add('border-orange-500', 'border-2', 'bg-orange-50');
+            return;
+        }
+
+        // Si on réorganise les dossiers
+        if (draggedFolderElement && targetElement !== draggedFolderElement) {
+            targetElement.classList.add('border-green-500', 'border-t-4');
+        }
     }
 
-    function handleFolderDragLeave(event) {
-        event.currentTarget.classList.remove('border-orange-500', 'border-2', 'bg-orange-50');
+    function handleFolderItemDragLeave(event) {
+        event.currentTarget.classList.remove('border-green-500', 'border-t-4', 'border-orange-500', 'border-2', 'bg-orange-50');
     }
 
-    function handleDropOnFolder(event, folderId) {
+    function handleFolderItemDrop(event) {
         event.preventDefault();
         event.stopPropagation();
-        event.currentTarget.classList.remove('border-orange-500', 'border-2', 'bg-orange-50');
 
-        if (!draggedMediaId) return;
+        const targetElement = event.currentTarget;
+        targetElement.classList.remove('border-green-500', 'border-t-4', 'border-orange-500', 'border-2', 'bg-orange-50');
 
-        // Déplacer le média vers le dossier
-        fetch(`/dashboard/media/${draggedMediaId}/move`, {
+        // Si on dépose un média dans un dossier
+        if (draggedMediaId) {
+            const folderId = parseInt(targetElement.dataset.folderId);
+            moveMediaToFolder(draggedMediaId, folderId);
+            return;
+        }
+
+        // Si on réorganise les dossiers
+        if (draggedFolderElement && targetElement !== draggedFolderElement) {
+            const foldersList = document.getElementById('folders-list');
+            const allFolders = Array.from(foldersList.querySelectorAll('.folder-item'));
+            const draggedIndex = allFolders.indexOf(draggedFolderElement);
+            const targetIndex = allFolders.indexOf(targetElement);
+
+            if (draggedIndex < targetIndex) {
+                targetElement.after(draggedFolderElement);
+            } else {
+                targetElement.before(draggedFolderElement);
+            }
+
+            saveFoldersOrder();
+        }
+    }
+
+    function moveMediaToFolder(mediaId, folderId) {
+        fetch(`/dashboard/media/${mediaId}/move`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
-            body: JSON.stringify({
-                folder_id: folderId
-            })
+            body: JSON.stringify({ folder_id: folderId })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 showSuccess(data.message);
-                // Retirer le média de la liste
-                const mediaElement = document.querySelector(`[data-media-id="${draggedMediaId}"]`);
+                const mediaElement = document.querySelector(`[data-media-id="${mediaId}"]`);
                 if (mediaElement) {
                     mediaElement.style.transition = 'opacity 0.3s, transform 0.3s';
                     mediaElement.style.opacity = '0';
                     mediaElement.style.transform = 'scale(0.8)';
                     setTimeout(() => {
                         mediaElement.remove();
-                        // Mettre à jour le compteur
                         updateMediaCount(-1);
-                        // Recharger pour voir le média dans le dossier
                         setTimeout(() => location.reload(), 500);
                     }, 300);
                 }
@@ -744,14 +890,37 @@
         });
     }
 
-    function updateMediaCount(delta) {
-        const counterElement = document.querySelector('.text-sm.text-gray-600');
-        if (counterElement && counterElement.textContent.includes('média(s) sans dossier')) {
-            const currentCount = parseInt(counterElement.textContent.match(/\d+/)[0]);
-            const newCount = currentCount + delta;
-            counterElement.textContent = `${newCount} média(s) sans dossier`;
-        }
+    function saveFoldersOrder() {
+        const foldersList = document.getElementById('folders-list');
+        const folders = Array.from(foldersList.querySelectorAll('.folder-item'));
+
+        const foldersData = folders.map((folder, index) => ({
+            id: parseInt(folder.dataset.folderId),
+            order: index
+        }));
+
+        fetch('/dashboard/folders/reorder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ folders: foldersData })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSuccess(data.message);
+            } else {
+                showError('Erreur lors de la sauvegarde');
+            }
+        })
+        .catch(error => {
+            showError('Erreur lors de la réorganisation');
+            console.error(error);
+        });
     }
+    // ===== FIN DRAG & DROP DES DOSSIERS =====
 
     function toggleFolderMedias(folderId) {
         const folder = document.getElementById(`folder-${folderId}`);
@@ -771,8 +940,23 @@
     // ============ Gestion des dossiers ============
 
     function openCreateFolderModal() {
-        const folderName = prompt('Nom du nouveau dossier:');
-        if (!folderName || !folderName.trim()) return;
+        document.getElementById('createFolderModal').classList.remove('hidden');
+        document.getElementById('newFolderName').value = '';
+        document.getElementById('newFolderColor').value = '#3B82F6';
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => document.getElementById('newFolderName').focus(), 100);
+    }
+
+    function closeCreateFolderModal() {
+        document.getElementById('createFolderModal').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    function createFolder() {
+        const folderName = document.getElementById('newFolderName').value.trim();
+        const folderColor = document.getElementById('newFolderColor').value;
+
+        if (!folderName) return;
 
         fetch('{{ route("dashboard.folders.store") }}', {
             method: 'POST',
@@ -781,7 +965,8 @@
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             body: JSON.stringify({
-                name: folderName.trim(),
+                name: folderName,
+                color: folderColor,
                 parent_id: {{ $currentFolder ? $currentFolder->id : 'null' }}
             })
         })
@@ -789,6 +974,7 @@
         .then(data => {
             if (data.success) {
                 showSuccess(data.message);
+                closeCreateFolderModal();
                 setTimeout(() => location.reload(), 1000);
             } else {
                 showError(data.message || 'Erreur lors de la création du dossier');
@@ -800,9 +986,26 @@
         });
     }
 
-    function openEditFolderModal(folderId, currentName) {
-        const newName = prompt('Nouveau nom du dossier:', currentName);
-        if (!newName || !newName.trim() || newName === currentName) return;
+    function openEditFolderModal(folderId, currentName, currentColor) {
+        document.getElementById('editFolderId').value = folderId;
+        document.getElementById('editFolderName').value = currentName;
+        document.getElementById('editFolderColor').value = currentColor || '#3B82F6';
+        document.getElementById('editFolderModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => document.getElementById('editFolderName').focus(), 100);
+    }
+
+    function closeEditFolderModal() {
+        document.getElementById('editFolderModal').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    function updateFolder() {
+        const folderId = document.getElementById('editFolderId').value;
+        const folderName = document.getElementById('editFolderName').value.trim();
+        const folderColor = document.getElementById('editFolderColor').value;
+
+        if (!folderName) return;
 
         fetch(`/dashboard/folders/${folderId}`, {
             method: 'PUT',
@@ -811,13 +1014,15 @@
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             body: JSON.stringify({
-                name: newName.trim()
+                name: folderName,
+                color: folderColor
             })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 showSuccess(data.message);
+                closeEditFolderModal();
                 setTimeout(() => location.reload(), 1000);
             } else {
                 showError(data.message || 'Erreur lors de la modification');
