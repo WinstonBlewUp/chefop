@@ -50,6 +50,38 @@ class SimpleLightbox {
         `;
 
         document.body.insertAdjacentHTML('beforeend', lightboxHTML);
+
+        // MASQUER le compteur (sans retirer l'élément)
+        const counterEl = document.getElementById('lightbox-counter');
+        if (counterEl) counterEl.style.display = 'none';
+
+        // Supprimer tout halo/outline/tap highlight sur les boutons
+        const style = document.createElement('style');
+        style.textContent = `
+            #lightbox-prev, #lightbox-next, #lightbox-close {
+                outline: none !important;
+                box-shadow: none !important;
+                border: 0 !important;
+                background: transparent;
+                -webkit-tap-highlight-color: transparent;
+                -webkit-touch-callout: none;
+                appearance: none;
+            }
+            #lightbox-prev:focus, #lightbox-next:focus, #lightbox-close:focus,
+            #lightbox-prev:focus-visible, #lightbox-next:focus-visible, #lightbox-close:focus-visible,
+            #lightbox-prev:active, #lightbox-next:active, #lightbox-close:active {
+                outline: none !important;
+                box-shadow: none !important;
+                border: 0 !important;
+            }
+            #lightbox-prev:-moz-focusring, #lightbox-next:-moz-focusring, #lightbox-close:-moz-focusring {
+                outline: none !important;
+            }
+            #lightbox-prev::-moz-focus-inner, #lightbox-next::-moz-focus-inner, #lightbox-close::-moz-focus-inner {
+                border: 0;
+            }
+        `;
+        document.head.appendChild(style);
     }
 
     attachEventListeners() {
@@ -76,7 +108,6 @@ class SimpleLightbox {
     }
 
     init() {
-        // Récupérer toutes les images cliquables
         const mediaElements = document.querySelectorAll('[data-lightbox]');
         this.images = Array.from(mediaElements).map(el => ({
             src: el.dataset.lightbox,
@@ -86,7 +117,6 @@ class SimpleLightbox {
             projectUrl: el.dataset.lightboxProjectUrl || null
         }));
 
-        // Ajouter les événements de clic
         mediaElements.forEach((el, index) => {
             el.style.cursor = 'pointer';
             el.addEventListener('click', (e) => {
@@ -109,12 +139,10 @@ class SimpleLightbox {
         document.getElementById('lightbox-overlay').style.display = 'none';
         document.body.style.overflow = '';
 
-        // Arrêter la vidéo si c'est une vidéo
         const video = document.getElementById('lightbox-video');
         video.pause();
         video.currentTime = 0;
 
-        // Nettoyer l'iframe si c'est une vidéo externe
         const iframe = document.getElementById('lightbox-iframe');
         iframe.src = '';
     }
@@ -140,10 +168,9 @@ class SimpleLightbox {
         const projectLink = document.getElementById('lightbox-project-link');
         const projectTitle = document.getElementById('lightbox-project-title');
 
-        // Mettre à jour le compteur
+        // (compteur conservé mais masqué)
         counter.textContent = `${this.currentIndex + 1} / ${this.images.length}`;
 
-        // Afficher/masquer les boutons de navigation
         if (this.images.length <= 1) {
             prevBtn.style.display = 'none';
             nextBtn.style.display = 'none';
@@ -152,7 +179,6 @@ class SimpleLightbox {
             nextBtn.style.display = 'flex';
         }
 
-        // Afficher/masquer le lien vers le projet
         if (current.projectUrl && current.projectTitle) {
             projectLink.href = current.projectUrl;
             projectTitle.textContent = current.projectTitle;
@@ -161,7 +187,6 @@ class SimpleLightbox {
             projectLink.style.display = 'none';
         }
 
-        // Afficher le contenu approprié
         if (current.type === 'external-video') {
             img.style.display = 'none';
             video.style.display = 'none';
@@ -182,7 +207,6 @@ class SimpleLightbox {
     }
 }
 
-// Initialiser la lightbox au chargement de la page
 document.addEventListener('DOMContentLoaded', () => {
     const lightbox = new SimpleLightbox();
     lightbox.init();
