@@ -15,6 +15,7 @@ export default {
             fontFamily: {
                 sans: ['Inter', ...defaultTheme.fontFamily.sans],               
             },
+            screens: {'3xl': '1920px'},
         },
     },
 

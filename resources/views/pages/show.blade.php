@@ -10,7 +10,7 @@
 @include('components.navbar')
 
 <div class="bg-white w-full lg:pr-20 py-5">
-    <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+    <div class="container mx-auto py-6 px-4 sm:px-6 lg:px-8 xl:max-w-8xl 3xl:max-w-9xl">
         <div class="flex gap-4 lg:gap-8">
             {{-- Navigation latérale des projets de la catégorie - Cachée sur mobile --}}
             <div class="hidden lg:block w-40 flex-shrink-0 {{ $categoryProjects->count() > 1 ? 'opacity-100' : 'opacity-0 pointer-events-none' }}">

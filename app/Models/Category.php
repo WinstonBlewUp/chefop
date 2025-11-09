@@ -10,11 +10,15 @@ class Category extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'slug'];
+    protected $fillable = ['name', 'slug', 'is_special'];
+
+    protected $casts = [
+        'is_special' => 'boolean',
+    ];
 
     public function projects()
     {
-        return $this->hasMany(Project::class);
+        return $this->belongsToMany(Project::class);
     }
 
     public function pages()

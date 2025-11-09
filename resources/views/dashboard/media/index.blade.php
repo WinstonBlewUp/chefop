@@ -151,69 +151,93 @@
                     </a>
                 @endif
 
+                {{-- Liste des dossiers pliables --}}
                 @if($folders->count() > 0)
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <div class="space-y-2 mb-4">
+                        {{-- Dossiers existants --}}
                         @foreach($folders as $folder)
-                            <div class="relative group bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden"
-                                 data-folder-id="{{ $folder->id }}"
-                                 ondragover="handleFolderDragOver(event)"
-                                 ondragleave="handleFolderDragLeave(event)"
-                                 ondrop="handleDropOnFolder(event, {{ $folder->id }})">
-                                <div onclick="toggleFolderContent({{ $folder->id }})" class="block p-4 text-center cursor-pointer">
-                                    <svg class="w-12 h-12 mx-auto mb-2 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
-                                    </svg>
-                                    <p class="text-sm font-medium text-gray-900 truncate">{{ $folder->name }}</p>
-                                    <p class="text-xs text-gray-500">{{ $folder->media_count }} fichier(s)</p>
-                                </div>
+                            @if($folder->media->count() > 0)
+                                <div class="border border-gray-200 rounded-lg bg-white overflow-hidden"
+                                     data-folder-id="{{ $folder->id }}"
+                                     data-folder-name="{{ $folder->name }}"
+                                     ondragover="handleFolderDragOver(event)"
+                                     ondragleave="handleFolderDragLeave(event)"
+                                     ondrop="handleDropOnFolder(event, {{ $folder->id }})">
+                                    <div class="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer"
+                                         onclick="toggleFolderMedias({{ $folder->id }})">
+                                        <div class="flex items-center">
+                                            <svg class="w-5 h-5 mr-3 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                                            </svg>
+                                            <span class="font-medium text-gray-900">{{ $folder->name }}</span>
+                                            <span class="ml-2 text-xs text-gray-500">({{ $folder->media->count() }} médias)</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            {{-- Boutons edit/delete --}}
+                                            <button onclick="event.stopPropagation(); openEditFolderModal({{ $folder->id }}, '{{ $folder->name }}')"
+                                                    class="p-1 text-gray-600 hover:bg-gray-200 rounded transition"
+                                                    title="Modifier">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                                </svg>
+                                            </button>
+                                            <button onclick="event.stopPropagation(); deleteFolder({{ $folder->id }}, '{{ $folder->name }}')"
+                                                    class="p-1 text-red-600 hover:bg-red-100 rounded transition"
+                                                    title="Supprimer">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                            </button>
+                                            <svg class="w-5 h-5 text-gray-400 transform transition-transform" id="icon-folder-{{ $folder->id }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
 
-                                {{-- Actions --}}
-                                <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button onclick="event.stopPropagation(); openEditFolderModal({{ $folder->id }}, '{{ $folder->name }}')" class="p-1 bg-white rounded shadow hover:bg-gray-100">
-                                        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                                        </svg>
-                                    </button>
-                                    <button onclick="event.stopPropagation(); deleteFolder({{ $folder->id }}, '{{ $folder->name }}')" class="p-1 bg-white rounded shadow hover:bg-red-100">
-                                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-
-                                {{-- Contenu du dossier (caché par défaut) --}}
-                                <div id="folder-content-{{ $folder->id }}" class="hidden border-t border-gray-200 bg-gray-50 p-3">
-                                    @if($folder->media->count() > 0)
-                                        <div class="grid grid-cols-2 gap-2">
+                                    <div id="folder-{{ $folder->id }}" class="hidden px-4 pb-4">
+                                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 pt-3 border-t border-gray-100">
                                             @foreach($folder->media as $item)
-                                                <div class="relative cursor-pointer group/media bg-white rounded border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden"
-                                                     onclick="openMediaModal('{{ $item->is_external ? $item->getEmbedUrl() : asset('storage/' . $item->file_path) }}', '{{ $item->type }}', '{{ $item->is_external ? 'external-video' : pathinfo($item->file_path, PATHINFO_FILENAME) }}')">
+                                                <label class="relative cursor-pointer group"
+                                                       draggable="true"
+                                                       data-media-id="{{ $item->id }}"
+                                                       ondragstart="handleMediaDragStart(event, {{ $item->id }})"
+                                                       ondragend="handleMediaDragEnd(event)">
+                                                    <input type="checkbox"
+                                                           class="peer hidden media-checkbox"
+                                                           data-media-id="{{ $item->id }}"
+                                                           onchange="updateSelectionActions()">
+
                                                     @if(Str::startsWith($item->type, 'image/'))
                                                         <img src="{{ asset('storage/' . $item->file_path) }}"
                                                              alt="media"
-                                                             class="w-full h-20 object-cover group-hover/media:scale-105 transition-transform duration-300">
+                                                             class="w-full h-32 object-cover rounded-md border-2 border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition">
                                                     @elseif($item->is_external)
-                                                        <div class="relative w-full h-20 bg-gray-900">
+                                                        <div class="w-full h-32 rounded-md border-2 border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition overflow-hidden">
                                                             <iframe src="{{ $item->getEmbedUrl() }}"
                                                                     class="w-full h-full pointer-events-none"
-                                                                    frameborder="0"
-                                                                    allowfullscreen></iframe>
+                                                                    frameborder="0"></iframe>
                                                         </div>
                                                     @elseif(Str::startsWith($item->type, 'video/'))
-                                                        <div class="relative w-full h-20 bg-gray-900">
-                                                            <video class="w-full h-full object-cover" muted preload="metadata">
-                                                                <source src="{{ asset('storage/' . $item->file_path) }}#t=1" type="{{ $item->type }}">
-                                                            </video>
-                                                        </div>
+                                                        <video class="w-full h-32 object-cover rounded-md border-2 border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition" muted>
+                                                            <source src="{{ asset('storage/' . $item->file_path) }}" type="{{ $item->type }}">
+                                                        </video>
                                                     @endif
-                                                </div>
+
+                                                    <div class="absolute inset-0 rounded-md bg-indigo-500/20 opacity-0 peer-checked:opacity-100 transition pointer-events-none"></div>
+
+                                                    <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                                        <div class="p-1 rounded-full bg-indigo-500">
+                                                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                                            </svg>
+                                                        </div>
+                                                    </div>
+                                                </label>
                                             @endforeach
                                         </div>
-                                    @else
-                                        <p class="text-xs text-gray-500 text-center">Aucun média</p>
-                                    @endif
+                                    </div>
                                 </div>
-                            </div>
+                            @endif
                         @endforeach
                     </div>
                 @else
@@ -224,112 +248,81 @@
             </div>
         </div>
 
-        {{-- Galerie des médias existants --}}
+        {{-- Section Médias non organisés --}}
         @if($media->count() > 0)
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                 <div class="p-6">
-                    <div class="flex items-center mb-6">
-                        <div class="p-2 rounded-full bg-orange-100 mr-3">
-                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-gray-900">Médias non organisés</h2>
-                            <p class="text-sm text-gray-600">{{ $media->count() }} média(s) sans dossier</p>
-                        </div>
-                    </div>
-                    
-                    <div id="unorganized-media-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        @foreach($media as $item)
-                            <div class="relative cursor-move group bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden"
-                                 draggable="true"
-                                 data-media-id="{{ $item->id }}"
-                                 ondragstart="handleMediaDragStart(event, {{ $item->id }})"
-                                 ondragend="handleMediaDragEnd(event)"
-                                 onclick="openMediaModal('{{ $item->is_external ? $item->getEmbedUrl() : asset('storage/' . $item->file_path) }}', '{{ $item->type }}', '{{ $item->is_external ? 'external-video' : pathinfo($item->file_path, PATHINFO_FILENAME) }}')">
-
-                                @if(Str::startsWith($item->type, 'image/'))
-                                    <img src="{{ asset('storage/' . $item->file_path) }}"
-                                         alt="media"
-                                         class="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300">
-                                @elseif($item->is_external)
-                                    <div class="relative w-full h-32 bg-gray-900">
-                                        <iframe src="{{ $item->getEmbedUrl() }}"
-                                                class="w-full h-full pointer-events-none"
-                                                frameborder="0"
-                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                allowfullscreen></iframe>
-                                        {{-- Overlay de lecture --}}
-                                        <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                            <div class="bg-white bg-opacity-90 rounded-full p-2">
-                                                <svg class="w-6 h-6 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M8 5v14l11-7z"/>
-                                                </svg>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @elseif(Str::startsWith($item->type, 'video/'))
-                                    <div class="relative w-full h-32 bg-gray-900">
-                                        <video class="w-full h-full object-cover"
-                                               muted preload="metadata">
-                                            <source src="{{ asset('storage/' . $item->file_path) }}#t=1" type="{{ $item->type }}">
-                                            {{-- Fallback pour les navigateurs qui ne supportent pas le format --}}
-                                            <div class="w-full h-full flex items-center justify-center bg-gray-800 text-white">
-                                                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M8 5v14l11-7z"/>
-                                                </svg>
-                                            </div>
-                                        </video>
-                                        {{-- Overlay de lecture --}}
-                                        <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <div class="bg-white bg-opacity-90 rounded-full p-2">
-                                                <svg class="w-6 h-6 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M8 5v14l11-7z"/>
-                                                </svg>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endif
-
-                                {{-- Badge du format de fichier --}}
-                                @if(!$item->is_external)
-                                <div class="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {{ strtoupper(pathinfo($item->file_path, PATHINFO_EXTENSION)) }}
-                                </div>
-                                @else
-                                <div class="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {{ $item->getYoutubeId() ? 'YOUTUBE' : 'VIMEO' }}
-                                </div>
-                                @endif
-
-                                {{-- Indicateur de type de média --}}
-                                <div class="absolute bottom-2 left-2">
-                                    @if(Str::startsWith($item->type, 'image/'))
-                                        <div class="p-1 rounded-full bg-green-100 bg-opacity-90">
-                                            <svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                            </svg>
-                                        </div>
-                                    @elseif(Str::startsWith($item->type, 'video/'))
-                                        <div class="p-1 rounded-full bg-blue-100 bg-opacity-90">
-                                            <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                                            </svg>
-                                        </div>
-                                    @endif
-                                </div>
-
-                                {{-- Durée de la vidéo (visible en bas à droite) --}}
-                                @if(Str::startsWith($item->type, 'video/'))
-                                    <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-1 py-0.5 rounded">
-                                        <svg class="w-3 h-3 inline" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
-                                        </svg>
-                                    </div>
-                                @endif
+                    <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-orange-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <h3 class="font-medium text-gray-900">Médias non organisés</h3>
                             </div>
-                        @endforeach
+                            <p class="text-sm text-gray-600">{{ $media->count() }} média(s)</p>
+                        </div>
+
+                        {{-- Barre d'actions pour la sélection multiple --}}
+                        <div id="selectionActions" class="hidden flex items-center gap-3 mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <span id="selectionCount" class="text-sm font-medium text-gray-700">0 sélectionné(s)</span>
+                            <button onclick="selectAllMedia()" class="px-3 py-1.5 text-sm bg-white text-gray-700 rounded-lg hover:bg-gray-100 border border-gray-300">
+                                Tout sélectionner
+                            </button>
+                            <button onclick="deselectAllMedia()" class="px-3 py-1.5 text-sm bg-white text-gray-700 rounded-lg hover:bg-gray-100 border border-gray-300">
+                                Tout désélectionner
+                            </button>
+                            <div class="relative">
+                                <button id="moveSelectedBtn" class="px-4 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                                    </svg>
+                                    Déplacer vers...
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="unorganized-media-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                            @foreach ($media as $item)
+                                <label class="relative cursor-pointer group media-item"
+                                       draggable="true"
+                                       data-media-id="{{ $item->id }}"
+                                       ondragstart="handleMediaDragStart(event, {{ $item->id }})"
+                                       ondragend="handleMediaDragEnd(event)">
+                                    <input type="checkbox"
+                                           class="peer hidden media-checkbox"
+                                           data-media-id="{{ $item->id }}"
+                                           onchange="updateSelectionActions()">
+
+                                    @if(Str::startsWith($item->type, 'image/'))
+                                        <img src="{{ asset('storage/' . $item->file_path) }}"
+                                             alt="media"
+                                             class="w-full h-32 object-cover rounded-md border border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition">
+                                    @elseif($item->is_external)
+                                        <iframe src="{{ $item->getEmbedUrl() }}"
+                                                class="w-full h-32 rounded-md border border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition pointer-events-none"
+                                                frameborder="0"
+                                                allowfullscreen></iframe>
+                                    @elseif(Str::startsWith($item->type, 'video/'))
+                                        <video class="w-full h-32 object-cover rounded-md border border-gray-300 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 transition" muted>
+                                            <source src="{{ asset('storage/' . $item->file_path) }}" type="{{ $item->type }}">
+                                        </video>
+                                    @endif
+
+                                    @if(!$item->is_external)
+                                    <div class="absolute top-1 right-1 bg-white text-xs px-2 py-1 rounded shadow opacity-0 group-hover:opacity-100 transition">
+                                        {{ strtoupper(pathinfo($item->file_path, PATHINFO_EXTENSION)) }}
+                                    </div>
+                                    @else
+                                    <div class="absolute top-1 right-1 bg-white text-xs px-2 py-1 rounded shadow opacity-0 group-hover:opacity-100 transition">
+                                        {{ $item->getYoutubeId() ? 'YOUTUBE' : 'VIMEO' }}
+                                    </div>
+                                    @endif
+
+                                    <div class="absolute inset-0 rounded-md bg-indigo-500/20 opacity-0 peer-checked:opacity-100 transition pointer-events-none"></div>
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
             </div>
@@ -760,12 +753,16 @@
         }
     }
 
-    function toggleFolderContent(folderId) {
-        const content = document.getElementById(`folder-content-${folderId}`);
-        if (content.classList.contains('hidden')) {
-            content.classList.remove('hidden');
+    function toggleFolderMedias(folderId) {
+        const folder = document.getElementById(`folder-${folderId}`);
+        const icon = document.getElementById(`icon-folder-${folderId}`);
+
+        if (folder.classList.contains('hidden')) {
+            folder.classList.remove('hidden');
+            icon.style.transform = 'rotate(180deg)';
         } else {
-            content.classList.add('hidden');
+            folder.classList.add('hidden');
+            icon.style.transform = 'rotate(0deg)';
         }
     }
 
@@ -1116,5 +1113,133 @@
             submitBtn.textContent = originalBtnText;
         }
     });
+
+    // ============ Gestion de la sélection multiple ============
+
+    function updateSelectionActions() {
+        const checkboxes = document.querySelectorAll('.media-checkbox:checked');
+        const count = checkboxes.length;
+        const selectionActions = document.getElementById('selectionActions');
+        const selectionCount = document.getElementById('selectionCount');
+
+        if (count > 0) {
+            selectionActions.classList.remove('hidden');
+            selectionActions.classList.add('flex');
+            selectionCount.textContent = `${count} sélectionné(s)`;
+        } else {
+            selectionActions.classList.add('hidden');
+            selectionActions.classList.remove('flex');
+        }
+    }
+
+    function selectAllMedia() {
+        document.querySelectorAll('.media-checkbox').forEach(checkbox => {
+            checkbox.checked = true;
+        });
+        updateSelectionActions();
+    }
+
+    function deselectAllMedia() {
+        document.querySelectorAll('.media-checkbox').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateSelectionActions();
+    }
+
+    function getSelectedMediaIds() {
+        const checkboxes = document.querySelectorAll('.media-checkbox:checked');
+        return Array.from(checkboxes).map(cb => cb.dataset.mediaId);
+    }
+
+    // Gestion du déplacement groupé vers un dossier
+    document.getElementById('moveSelectedBtn')?.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const selectedIds = getSelectedMediaIds();
+
+        if (selectedIds.length === 0) {
+            alert('Aucun média sélectionné');
+            return;
+        }
+
+        // Créer un menu contextuel pour choisir le dossier
+        showFolderSelectMenu(this, selectedIds);
+    });
+
+    function showFolderSelectMenu(button, mediaIds) {
+        // Supprimer le menu existant si présent
+        const existingMenu = document.getElementById('folderSelectMenu');
+        if (existingMenu) {
+            existingMenu.remove();
+        }
+
+        // Créer le menu
+        const menu = document.createElement('div');
+        menu.id = 'folderSelectMenu';
+        menu.className = 'absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50';
+
+        const folderElements = document.querySelectorAll('[data-folder-id]');
+
+        if (folderElements.length === 0) {
+            menu.innerHTML = '<div class="px-4 py-2 text-sm text-gray-500">Aucun dossier disponible</div>';
+        } else {
+            folderElements.forEach(folderEl => {
+                const folderId = folderEl.dataset.folderId;
+                const folderName = folderEl.dataset.folderName || 'Dossier sans nom';
+
+                const option = document.createElement('button');
+                option.className = 'w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2';
+                option.innerHTML = `
+                    <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                    </svg>
+                    ${folderName}
+                `;
+                option.onclick = () => moveSelectedMediaToFolder(mediaIds, folderId);
+                menu.appendChild(option);
+            });
+        }
+
+        button.parentElement.appendChild(menu);
+
+        // Fermer le menu en cliquant ailleurs
+        setTimeout(() => {
+            document.addEventListener('click', function closeMenu(e) {
+                if (!menu.contains(e.target) && e.target !== button) {
+                    menu.remove();
+                    document.removeEventListener('click', closeMenu);
+                }
+            });
+        }, 100);
+    }
+
+    async function moveSelectedMediaToFolder(mediaIds, folderId) {
+        try {
+            const promises = mediaIds.map(mediaId =>
+                fetch(`{{ url('/dashboard/media') }}/${mediaId}/move`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ folder_id: folderId })
+                })
+            );
+
+            await Promise.all(promises);
+
+            // Fermer le menu
+            document.getElementById('folderSelectMenu')?.remove();
+
+            // Désélectionner et rafraîchir
+            deselectAllMedia();
+            showSuccess(`${mediaIds.length} média(s) déplacé(s) avec succès`);
+
+            // Recharger la page après un court délai
+            setTimeout(() => location.reload(), 1000);
+        } catch (error) {
+            console.error('Error:', error);
+            showError('Erreur lors du déplacement des médias');
+        }
+    }
 </script>
 @endsection

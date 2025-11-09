@@ -37,15 +37,28 @@
     </div>
 </div>
 
-{{-- TinyMCE --}}
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+{{-- TinyMCE from local files --}}
+<script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
 <script>
-tinymce.init({
-    selector: '#content',
-    height: 400,
-    menubar: false,
-    plugins: 'link lists code image table',
-    toolbar: 'undo redo | bold italic underline | bullist numlist | link image table | code'
+document.addEventListener('DOMContentLoaded', function() {
+    tinymce.init({
+        selector: '#content',
+        license_key: 'gpl',
+        height: 500,
+        menubar: false,
+        plugins: [
+            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+            'insertdatetime', 'media', 'table', 'help', 'wordcount'
+        ],
+        toolbar: 'undo redo | blocks | ' +
+            'bold italic backcolor | alignleft aligncenter ' +
+            'alignright alignjustify | bullist numlist outdent indent | ' +
+            'removeformat | help',
+        content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:16px }',
+        skin_url: '{{ asset("tinymce/skins/ui/oxide") }}',
+        content_css: '{{ asset("tinymce/skins/content/default/content.css") }}'
+    });
 });
 </script>
 @endsection
